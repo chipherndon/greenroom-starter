@@ -1,3 +1,4 @@
+import * as React from "react";
 import Link from "next/link";
 import { notFound } from "next/navigation";
 import {
@@ -35,6 +36,7 @@ const RECOUP_LABELS: Record<Recoup["category"], string> = {
   hospitality_overage: "Hospitality overage",
   production_overage: "Production overage",
   prior_advance: "Prior advance",
+  backline: "Backline",
   damages: "Damages",
   other: "Other",
 };
@@ -66,6 +68,8 @@ export default async function SettlePage({
     deal,
     ticketSales,
     expenses,
+    comps: data.comps,
+    recoupApplications: recoups,
     venueCapacity: data.venue?.capacity ?? undefined,
   });
   const grossSoFar = ticketSales.reduce((sum, t) => sum + t.gross, 0);
@@ -130,6 +134,8 @@ export default async function SettlePage({
         {!calc.supported ? (
           <UnsupportedDeal
             dealType={calc.dealType}
+            kind={calc.kind}
+            reason={calc.reason}
             deal={deal}
             existingSettlement={settlement}
             grossSoFar={grossSoFar}
@@ -357,6 +363,8 @@ function LifecycleBar({
 
 function UnsupportedDeal({
   dealType,
+  kind,
+  reason,
   deal,
   existingSettlement,
   grossSoFar,
@@ -366,6 +374,8 @@ function UnsupportedDeal({
   expenseRowCount,
 }: {
   dealType: string;
+  kind: "deal_type_unsupported" | "deal_misconfigured";
+  reason: string;
   deal: NonNullable<Awaited<ReturnType<typeof getShowById>>>["deal"];
   existingSettlement: NonNullable<
     Awaited<ReturnType<typeof getShowById>>
@@ -386,17 +396,24 @@ function UnsupportedDeal({
 
   return (
     <>
-      <Card accent="amber">
+      <Card accent={kind === "deal_misconfigured" ? "rose" : "amber"}>
         <CardContent className="py-12 text-center">
-          <div className="inline-flex h-12 w-12 items-center justify-center rounded-full bg-amber-50 ring-1 ring-amber-200/80 mb-5">
-            <FileWarning className="h-5 w-5 text-amber-700" />
+          <div className={`inline-flex h-12 w-12 items-center justify-center rounded-full ring-1 mb-5 ${
+            kind === "deal_misconfigured"
+              ? "bg-rose-50 ring-rose-200/80"
+              : "bg-amber-50 ring-amber-200/80"
+          }`}>
+            <FileWarning className={`h-5 w-5 ${
+              kind === "deal_misconfigured" ? "text-rose-700" : "text-amber-700"
+            }`} />
           </div>
           <h2 className="font-display text-[22px] font-medium text-ink-900 mb-2" style={{ letterSpacing: "-0.02em" }}>
-            The in-app tool can&apos;t settle a {friendly[dealType] ?? dealType} yet.
+            {kind === "deal_misconfigured"
+              ? "This deal needs cleanup before settlement can run."
+              : `The in-app tool can't settle a ${friendly[dealType] ?? dealType} yet.`}
           </h2>
           <p className="text-[13px] text-ink-500 max-w-md mx-auto leading-relaxed">
-            Mariana would do this on a Google Sheet at 2am tonight. The inputs
-            are below — but the math doesn&apos;t happen here.
+            {reason}
           </p>
         </CardContent>
       </Card>
@@ -531,37 +548,56 @@ function SupportedSettlement({
         )}
       </div>
 
+      {/* Box-office facts */}
+      <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
+        <StatCard
+          label="Gross box office"
+          value={formatMoney(calc.grossBoxOffice)}
+        />
+        <StatCard
+          label="Net box office"
+          value={formatMoney(calc.netBoxOffice)}
+        />
+        <StatCard
+          label="Total expenses (passed through)"
+          value={formatMoney(calc.totalExpenses)}
+        />
+      </div>
+
       {/* Worksheet breakdown */}
       <Card accent="brand">
         <CardHeader>
           <div>
             <CardTitle>Settlement worksheet</CardTitle>
-            <CardDescription className="font-mono">
-              {calc.finalFormula}
-            </CardDescription>
           </div>
         </CardHeader>
-        <CardContent className="divide-y divide-ink-100/80">
-          <Row
-            label="Gross box office"
-            value={formatMoney(calc.grossBoxOffice)}
-          />
-          <Row label="Net box office" value={formatMoney(calc.netBoxOffice)} />
-          <Row
-            label="Total expenses (passed through)"
-            value={formatMoney(calc.totalExpenses)}
-          />
-          <div className="pt-3" />
-          {calc.steps.map((step, i) => (
-            <Row
-              key={i}
-              label={step.label}
-              value={formatMoney(step.value)}
-              note={step.note}
-            />
-          ))}
-          <div className="pt-3" />
-          <div className="flex items-baseline justify-between py-3 font-semibold">
+        <CardContent>
+          <div className="divide-y divide-ink-100/80">
+            {(() => {
+              const firstPercentageIdx = calc.steps.findIndex(
+                (s) => s.side === "percentage",
+              );
+              const hasGuaranteeBefore =
+                firstPercentageIdx > 0 &&
+                calc.steps
+                  .slice(0, firstPercentageIdx)
+                  .some((s) => s.side === "guarantee");
+              return calc.steps.map((step, i) => (
+                <React.Fragment key={i}>
+                  {i === firstPercentageIdx && hasGuaranteeBefore && (
+                    <VsDivider />
+                  )}
+                  <Row
+                    label={step.label}
+                    value={formatMoney(step.value)}
+                    note={step.note}
+                    kind={step.kind}
+                  />
+                </React.Fragment>
+              ));
+            })()}
+          </div>
+          <div className="mt-3 flex items-baseline justify-between py-3 font-semibold border-t border-ink-100/80">
             <span className="text-[13px] text-ink-900">Total to artist</span>
             <span className="text-[18px] font-mono tabular text-ink-900">
               {formatMoney(calc.totalToArtist)}
@@ -569,6 +605,8 @@ function SupportedSettlement({
           </div>
         </CardContent>
       </Card>
+
+      {calc.comparison && <VsComparison comparison={calc.comparison} />}
 
       {calc.bonusesNotTriggered.length > 0 && (
         <Card>
@@ -658,6 +696,79 @@ function RecoupsSection({ recoups }: { recoups: Recoup[] }) {
   );
 }
 
+function VsComparison({
+  comparison,
+}: {
+  comparison: NonNullable<
+    Extract<ReturnType<typeof calculateSettlement>, { supported: true }>["comparison"]
+  >;
+}) {
+  const guaranteeWins = comparison.winner === "guarantee";
+  return (
+    <Card accent={guaranteeWins ? "amber" : "brand"}>
+      <CardHeader>
+        <div>
+          <CardTitle>Vs comparison</CardTitle>
+          <CardDescription>
+            The settlement pays the greater of guarantee or percentage side.
+          </CardDescription>
+        </div>
+        <PlainBadge variant={guaranteeWins ? "amber" : "brand"}>
+          {guaranteeWins ? "Guarantee wins" : "Percentage wins"}
+        </PlainBadge>
+      </CardHeader>
+      <CardContent>
+        <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+          <ComparisonBox
+            label="Guarantee side"
+            value={comparison.guarantee}
+            active={guaranteeWins}
+          />
+          <ComparisonBox
+            label={`${comparison.basisLabel === "gross" ? "Gross" : "Net"} percentage side`}
+            value={comparison.percentage}
+            active={!guaranteeWins}
+          />
+        </div>
+        <div className="text-[12px] text-ink-500 mt-4">
+          Margin:{" "}
+          <span className="font-mono tabular text-ink-800">
+            {formatMoney(comparison.margin)}
+          </span>
+        </div>
+      </CardContent>
+    </Card>
+  );
+}
+
+function ComparisonBox({
+  label,
+  value,
+  active,
+}: {
+  label: string;
+  value: number;
+  active: boolean;
+}) {
+  return (
+    <div
+      className={`rounded-lg ring-1 p-4 ${
+        active
+          ? "bg-brand-50/40 ring-brand-200/80"
+          : "bg-canvas-soft ring-ink-200/60"
+      }`}
+    >
+      <div className="flex items-center justify-between gap-3">
+        <div className="text-[12px] font-medium text-ink-700">{label}</div>
+        {active && <PlainBadge variant="brand">Winner</PlainBadge>}
+      </div>
+      <div className="font-mono tabular text-[24px] leading-none font-semibold text-ink-900 mt-3">
+        {formatMoney(value)}
+      </div>
+    </div>
+  );
+}
+
 function SignoffSection({ settlement }: { settlement: Settlement }) {
   return (
     <Card>
@@ -690,26 +801,80 @@ function SignoffSection({ settlement }: { settlement: Settlement }) {
   );
 }
 
+function VsDivider() {
+  return (
+    <div className="flex items-center justify-center py-1.5 !border-t-0">
+      <span className="text-[10px] font-medium uppercase tracking-wider italic text-ink-400">
+        vs
+      </span>
+    </div>
+  );
+}
+
+function StatCard({ label, value }: { label: string; value: string }) {
+  return (
+    <div className="rounded-lg border border-ink-200/80 bg-white px-4 py-3 shadow-[0_1px_2px_rgba(26,24,20,0.03)]">
+      <div className="eyebrow text-[10px] text-ink-500 mb-1.5">{label}</div>
+      <div className="text-[20px] font-mono tabular font-semibold text-ink-900" style={{ letterSpacing: "-0.01em" }}>
+        {value}
+      </div>
+    </div>
+  );
+}
+
 function Row({
   label,
   value,
   note,
+  kind,
 }: {
   label: string;
   value: string;
   note?: string;
+  kind?: "normal" | "winner" | "tier" | "recoup" | "comparison" | "net";
 }) {
+  const isWinner = kind === "winner";
+  const isTier = kind === "tier";
+  const isRecoup = kind === "recoup";
+  const isNet = kind === "net";
+
   return (
-    <div className="flex items-baseline justify-between py-2.5">
+    <div
+      className={`flex items-baseline justify-between py-2.5 gap-4 ${
+        isWinner
+          ? "bg-brand-50/35 -mx-5 px-5"
+          : isNet
+            ? "bg-sky-50/40 -mx-5 px-5"
+            : isTier
+              ? "pl-4"
+              : ""
+      }`}
+    >
       <div>
-        <div className="text-[13px] text-ink-600">{label}</div>
+        <div className={`text-[13px] ${
+          isWinner
+            ? "font-semibold text-brand-900"
+            : isNet
+              ? "font-semibold text-sky-900"
+              : isRecoup
+                ? "text-ink-800"
+                : "text-ink-600"
+        }`}>
+          {label}
+        </div>
         {note && (
           <div className="text-[11.5px] text-ink-400 mt-0.5 max-w-md leading-snug">
             {note}
           </div>
         )}
       </div>
-      <div className="text-[13.5px] text-ink-900 font-mono tabular">
+      <div className={`text-[13.5px] font-mono tabular ${
+        isWinner
+          ? "text-brand-900 font-semibold"
+          : isNet
+            ? "text-sky-900 font-semibold"
+            : "text-ink-900"
+      }`}>
         {value}
       </div>
     </div>
