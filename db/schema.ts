@@ -105,6 +105,15 @@ export const shows = sqliteTable("shows", {
  *     { type: "attendance_threshold", label: string, threshold: number, amount: number },
  *     { type: "tier_ratchet", label: string, tiers: [{ from, to|null, percentage }] }
  *   ]
+ *
+ * recoupClausesJson schema (when present):
+ *   [
+ *     { id, label, category, waterfallPosition, amountModel, fixedAmount,
+ *       capAmount, overageAbsorbedBy, overageSplitPct, rationale }
+ *   ]
+ *
+ * These are deal-time negotiated rights. Settlement-time `recoupsJson` rows
+ * reference them by ID and carry the actual billed amount/status.
  */
 export const deals = sqliteTable("deals", {
   id: text("id").primaryKey(),
@@ -123,6 +132,7 @@ export const deals = sqliteTable("deals", {
   hospitalityCap: real("hospitality_cap"),
 
   bonusesJson: text("bonuses_json"),
+  recoupClausesJson: text("recoup_clauses_json"),
   dealNotesFreetext: text("deal_notes_freetext"),
 
   createdAt: integer("created_at", { mode: "timestamp" }).notNull(),
@@ -318,6 +328,32 @@ export type Bonus =
       tiers: { from: number; to: number | null; percentage: number }[];
     };
 
+export type WaterfallPosition =
+  | "off_gross"
+  | "inside_expense_cap"
+  | "outside_cap_pre_split"
+  | "post_split";
+
+export type RecoupClause = {
+  id: string;
+  label: string;
+  category:
+    | "marketing"
+    | "prior_advance"
+    | "production_overage"
+    | "hospitality_overage"
+    | "backline"
+    | "damages"
+    | "other";
+  waterfallPosition: WaterfallPosition;
+  amountModel: "fixed" | "actual_up_to" | "actual_uncapped";
+  fixedAmount: number | null;
+  capAmount: number | null;
+  overageAbsorbedBy: "venue" | "artist" | "split" | "n_a";
+  overageSplitPct: number | null;
+  rationale: string | null;
+};
+
 export type Recoup = {
   id: string;
   category:
@@ -325,6 +361,7 @@ export type Recoup = {
     | "hospitality_overage"
     | "production_overage"
     | "prior_advance"
+    | "backline"
     | "damages"
     | "other";
   label: string;

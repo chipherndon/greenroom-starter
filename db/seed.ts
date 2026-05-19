@@ -36,6 +36,7 @@ import {
   settlements,
   type Bonus,
   type Recoup,
+  type RecoupClause,
   type SettlementStage,
 } from "./schema";
 
@@ -843,6 +844,297 @@ function computeSettlement(
   }
 }
 
+function appendStructuredSettlementFixtures({
+  showsToInsert,
+  dealsToInsert,
+  ticketSalesToInsert,
+  compsToInsert,
+  expensesToInsert,
+  settlementsToInsert,
+}: {
+  showsToInsert: (typeof shows.$inferInsert)[];
+  dealsToInsert: (typeof deals.$inferInsert)[];
+  ticketSalesToInsert: (typeof ticketSales.$inferInsert)[];
+  compsToInsert: (typeof comps.$inferInsert)[];
+  expensesToInsert: (typeof expenses.$inferInsert)[];
+  settlementsToInsert: (typeof settlements.$inferInsert)[];
+}) {
+  const fixtureDate = new Date("2026-01-17T20:00:00");
+  const showSpecs = [
+    {
+      id: "show_fixture_recoup_off_gross",
+      artistId: "art_coastal_spell",
+      date: "2026-01-17",
+      dealType: "vs" as const,
+      guaranteeAmount: 5000,
+      percentage: 0.8,
+      percentageBasis: "net" as const,
+      expenseCap: 2500,
+      gross: 21000,
+      fees: 2100,
+      ticketQty: 610,
+      expenses: [
+        { category: "sound" as const, amount: 450, description: "House sound package" },
+        { category: "lights" as const, amount: 320, description: "Lighting tech" },
+      ],
+      recoupClauses: [
+        recoupClause("recoup_show_fixture_recoup_off_gross_0", {
+          label: "Radio and IG marketing recoup",
+          waterfallPosition: "off_gross",
+          fixedAmount: 900,
+          rationale: "Deal email says marketing recoup comes off gross before split.",
+        }),
+      ],
+      recoups: [
+        recoupApplication("recoup_show_fixture_recoup_off_gross_0", {
+          label: "Radio and IG marketing recoup",
+          amount: 900,
+        }),
+      ],
+      notes: "Structured recoup fixture: fixed off-gross marketing recoup.",
+    },
+    {
+      id: "show_fixture_recoup_inside_cap_withdrawn",
+      artistId: "art_coastal_spell",
+      date: "2026-01-18",
+      dealType: "vs" as const,
+      guaranteeAmount: 4500,
+      percentage: 0.85,
+      percentageBasis: "net" as const,
+      expenseCap: 2200,
+      gross: 17600,
+      fees: 1760,
+      ticketQty: 540,
+      expenses: [{ category: "hospitality" as const, amount: 880, description: "Rider" }],
+      recoupClauses: [
+        recoupClause("recoup_show_fixture_recoup_inside_cap_withdrawn_0", {
+          label: "Production overage",
+          category: "production_overage",
+          waterfallPosition: "inside_expense_cap",
+          amountModel: "actual_up_to",
+          fixedAmount: null,
+          capAmount: 700,
+          overageAbsorbedBy: "venue",
+          rationale: "Actual production overages count inside the expense cap.",
+        }),
+        recoupClause("recoup_show_fixture_recoup_inside_cap_withdrawn_1", {
+          label: "Hospitality overage",
+          category: "hospitality_overage",
+          waterfallPosition: "inside_expense_cap",
+          amountModel: "actual_up_to",
+          fixedAmount: null,
+          capAmount: 300,
+          overageAbsorbedBy: "venue",
+          rationale: "Withdrawn after production confirmed venue caused the overage.",
+        }),
+      ],
+      recoups: [
+        recoupApplication("recoup_show_fixture_recoup_inside_cap_withdrawn_0", {
+          label: "Production overage",
+          category: "production_overage",
+          amount: 640,
+        }),
+        recoupApplication("recoup_show_fixture_recoup_inside_cap_withdrawn_1", {
+          label: "Hospitality overage",
+          category: "hospitality_overage",
+          amount: 260,
+          status: "withdrawn",
+        }),
+      ],
+      notes: "Structured recoup fixture: actual-up-to clause plus withdrawn clause.",
+    },
+    {
+      id: "show_fixture_recoup_outside_cap_ratchet",
+      artistId: "art_coastal_spell",
+      date: "2026-01-19",
+      dealType: "percentage_of_net" as const,
+      guaranteeAmount: null,
+      percentage: 0.8,
+      percentageBasis: "net" as const,
+      expenseCap: 1800,
+      gross: 22400,
+      fees: 2240,
+      ticketQty: 620,
+      bonuses: [
+        {
+          type: "tier_ratchet" as const,
+          label: "Tiered net split: 80% / 85% over $15,000",
+          tiers: [
+            { from: 0, to: 15000, percentage: 0.8 },
+            { from: 15000, to: null, percentage: 0.85 },
+          ],
+        },
+      ],
+      expenses: [{ category: "production" as const, amount: 1600, description: "Production package" }],
+      recoupClauses: [
+        recoupClause("recoup_show_fixture_recoup_outside_cap_ratchet_0", {
+          label: "Backline add-on",
+          category: "backline",
+          waterfallPosition: "outside_cap_pre_split",
+          amountModel: "actual_uncapped",
+          fixedAmount: null,
+          rationale: "Backline add-on is separate from the expense cap.",
+        }),
+      ],
+      recoups: [
+        recoupApplication("recoup_show_fixture_recoup_outside_cap_ratchet_0", {
+          label: "Backline add-on",
+          category: "backline",
+          amount: 375,
+        }),
+      ],
+      notes: "Structured recoup fixture: outside-cap recoup and tier ratchet.",
+    },
+    {
+      id: "show_fixture_recoup_post_split_gross_vs",
+      artistId: "art_coastal_spell",
+      date: "2026-01-20",
+      dealType: "vs" as const,
+      guaranteeAmount: 5500,
+      percentage: 0.18,
+      percentageBasis: "gross" as const,
+      expenseCap: null,
+      gross: 26000,
+      fees: 2600,
+      ticketQty: 640,
+      expenses: [{ category: "sound" as const, amount: 500, description: "House sound package" }],
+      comps: [{ category: "label" as const, count: 8, faceValue: 40, countsTowardGross: true }],
+      recoupClauses: [
+        recoupClause("recoup_show_fixture_recoup_post_split_gross_vs_0", {
+          label: "Prior tour advance",
+          category: "prior_advance",
+          waterfallPosition: "post_split",
+          fixedAmount: 1200,
+          rationale: "Prior advance comes out after the winning side is determined.",
+        }),
+      ],
+      recoups: [
+        recoupApplication("recoup_show_fixture_recoup_post_split_gross_vs_0", {
+          label: "Prior tour advance",
+          category: "prior_advance",
+          amount: 1200,
+        }),
+      ],
+      notes: "Structured recoup fixture: vs-gross with counted comps and post-split recoup.",
+    },
+  ];
+
+  for (const spec of showSpecs) {
+    showsToInsert.push({
+      id: spec.id,
+      venueId: VENUE_ID,
+      artistId: spec.artistId,
+      date: spec.date,
+      status: "settled",
+      doorsTime: "19:30",
+      setTime: "21:00",
+      roomConfig: "standing",
+      internalNotes: spec.notes,
+      createdAt: fixtureDate,
+    });
+
+    dealsToInsert.push({
+      id: `deal_${spec.id}`,
+      showId: spec.id,
+      dealType: spec.dealType,
+      guaranteeAmount: spec.guaranteeAmount,
+      percentage: spec.percentage,
+      percentageBasis: spec.percentageBasis,
+      expenseCap: spec.expenseCap,
+      hospitalityCap: 500,
+      bonusesJson: spec.bonuses ? JSON.stringify(spec.bonuses) : null,
+      recoupClausesJson: JSON.stringify(spec.recoupClauses),
+      dealNotesFreetext: spec.notes,
+      createdAt: fixtureDate,
+    });
+
+    ticketSalesToInsert.push({
+      id: `ts_${spec.id}`,
+      showId: spec.id,
+      qty: spec.ticketQty,
+      gross: spec.gross,
+      fees: spec.fees,
+      capturedAt: fixtureDate,
+    });
+
+    for (const [index, c] of (spec.comps ?? []).entries()) {
+      compsToInsert.push({
+        id: `comp_${spec.id}_${index}`,
+        showId: spec.id,
+        category: c.category,
+        count: c.count,
+        faceValue: c.faceValue,
+        countsTowardGross: c.countsTowardGross,
+        notes: "Fixture comp rule.",
+      });
+    }
+
+    for (const [index, e] of spec.expenses.entries()) {
+      expensesToInsert.push({
+        id: `exp_${spec.id}_${index}`,
+        showId: spec.id,
+        category: e.category,
+        amount: e.amount,
+        description: e.description,
+        approved: true,
+        absorbedByVenue: false,
+        enteredByUserId: MARIANA_ID,
+        enteredAt: fixtureDate,
+      });
+    }
+
+    const passThruExpenses = spec.expenses.reduce((sum, e) => sum + e.amount, 0);
+    settlementsToInsert.push({
+      id: `stl_${spec.id}`,
+      showId: spec.id,
+      status: "signed",
+      draftedAt: fixtureDate,
+      submittedAt: fixtureDate,
+      reviewStartedAt: fixtureDate,
+      signedAt: fixtureDate,
+      completedAt: fixtureDate,
+      completedByUserId: MARIANA_ID,
+      grossBoxOffice: spec.gross,
+      netBoxOffice: spec.gross - spec.fees,
+      totalExpenses: passThruExpenses,
+      totalToArtist: null,
+      recoupsJson: JSON.stringify(spec.recoups),
+      signoffText: "Structured terms reviewed and signed.",
+      notes: spec.notes,
+    });
+  }
+}
+
+function recoupClause(
+  id: string,
+  overrides: Partial<RecoupClause>,
+): RecoupClause {
+  return {
+    id,
+    label: "Marketing recoup",
+    category: "marketing",
+    waterfallPosition: "outside_cap_pre_split",
+    amountModel: "fixed",
+    fixedAmount: 900,
+    capAmount: null,
+    overageAbsorbedBy: "n_a",
+    overageSplitPct: null,
+    rationale: null,
+    ...overrides,
+  };
+}
+
+function recoupApplication(id: string, overrides: Partial<Recoup>): Recoup {
+  return {
+    id,
+    category: "marketing",
+    label: "Marketing recoup",
+    amount: 900,
+    status: "agreed",
+    ...overrides,
+  };
+}
+
 function dateOffset(days: number): string {
   const d = new Date(TODAY);
   d.setDate(d.getDate() + days);
@@ -1062,13 +1354,8 @@ async function main() {
     (s) => s.status !== "draft" && s.status !== "voided",
   );
   // Helpers
-  const findShow = (id: string) => showsToInsert.find((s) => s.id === id);
-  const findDeal = (showId: string) =>
-    dealsToInsert.find((d) => d.showId === showId);
   const findSettlement = (showId: string) =>
     settlementsToInsert.find((s) => s.showId === showId);
-  const findComps = (showId: string) =>
-    compsToInsert.filter((c) => c.showId === showId);
   const findExpenses = (showId: string) =>
     expensesToInsert.filter((e) => e.showId === showId);
 
@@ -1426,6 +1713,18 @@ async function main() {
     signoffText: "OK — but flag any future marketing recoup deals.",
     notes:
       "Disputed by WME (Daniel Hwang) on 3/18 over the $900 marketing recoup. Marcus authorized additional $720 to resolve, but the formal revision hasn't been pushed back into the system yet. Final agreed: $12,285 (vs originally calculated $11,565). See email thread for context. Going forward: deal emails must specify marketing recoup as inside or outside expense cap.",
+  });
+
+  // Additive-only fixtures for structured settlement math. These do not mutate
+  // generated or narrative seed records; they simply ensure the prototype has
+  // realistic rows for every new waterfall path.
+  appendStructuredSettlementFixtures({
+    showsToInsert,
+    dealsToInsert,
+    ticketSalesToInsert,
+    compsToInsert,
+    expensesToInsert,
+    settlementsToInsert,
   });
 
   // Bulk insert
