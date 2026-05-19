@@ -1,0 +1,1255 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width,initial-scale=1" />
+<title>Greenroom DB Explorer</title>
+<style>
+  :root {
+    --bg: #faf7f0;
+    --bg-soft: #fdfbf6;
+    --panel: #ffffff;
+    --ink-50: #faf8f4;
+    --ink-100: #f3f0e9;
+    --ink-200: #e4dfd2;
+    --ink-300: #c9c2b1;
+    --ink-400: #94907f;
+    --ink-500: #6b6759;
+    --ink-600: #4f4c41;
+    --ink-700: #3a3830;
+    --ink-800: #26241e;
+    --ink-900: #1a1814;
+    --brand: #047857;
+    --brand-soft: #ecfdf5;
+    --brand-line: #a7f3d0;
+    --rose: #be123c;
+    --rose-soft: #fef2f2;
+    --amber: #b45309;
+    --amber-soft: #fef7e6;
+    --sky: #1d4ed8;
+    --sky-soft: #eff6ff;
+    --mono: ui-monospace, SFMono-Regular, "SF Mono", Menlo, Consolas, monospace;
+    --sans: ui-sans-serif, system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
+  }
+  * { box-sizing: border-box; }
+  html, body { height: 100%; margin: 0; }
+  body {
+    background: var(--bg);
+    color: var(--ink-900);
+    font: 13px/1.45 var(--sans);
+    display: grid;
+    grid-template-columns: 240px 1fr;
+    grid-template-rows: 44px 1fr;
+    grid-template-areas:
+      "top top"
+      "side main";
+  }
+  header {
+    grid-area: top;
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    padding: 0 14px;
+    border-bottom: 1px solid var(--ink-200);
+    background: var(--bg-soft);
+  }
+  header .logo {
+    width: 22px; height: 22px; border-radius: 5px;
+    background: linear-gradient(135deg, #059669, #047857);
+    display: inline-flex; align-items: center; justify-content: center;
+  }
+  header .logo svg { display: block; }
+  header h1 {
+    font-size: 13px; font-weight: 600; margin: 0;
+    letter-spacing: -0.01em;
+  }
+  header .status {
+    margin-left: auto;
+    font: 11px/1 var(--mono);
+    color: var(--ink-500);
+    display: flex; align-items: center; gap: 10px;
+  }
+  header .status .dot {
+    width: 7px; height: 7px; border-radius: 50%;
+    background: var(--ink-300);
+  }
+  header .status.ok .dot { background: var(--brand); }
+  header .status.err .dot { background: var(--rose); }
+  header button, header label.file-btn {
+    font: 11.5px/1 var(--sans);
+    padding: 6px 10px; border-radius: 6px;
+    background: var(--panel); color: var(--ink-800);
+    border: 1px solid var(--ink-200);
+    cursor: pointer;
+  }
+  header button:hover, header label.file-btn:hover { background: var(--ink-50); }
+  header input[type="file"] { display: none; }
+
+  aside {
+    grid-area: side;
+    border-right: 1px solid var(--ink-200);
+    background: var(--bg-soft);
+    overflow-y: auto;
+    padding: 12px 6px 24px;
+  }
+  aside .section {
+    font: 10px/1 var(--sans);
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.1em;
+    color: var(--brand);
+    padding: 8px 10px 6px;
+  }
+  aside .item {
+    display: flex; justify-content: space-between; align-items: center;
+    padding: 5px 10px;
+    border-radius: 6px;
+    cursor: pointer;
+    font-size: 12.5px;
+    color: var(--ink-700);
+  }
+  aside .item:hover { background: var(--ink-100); }
+  aside .item.active {
+    background: var(--panel);
+    color: var(--ink-900);
+    box-shadow: 0 1px 2px rgba(26,24,20,0.05);
+    border: 1px solid var(--ink-200);
+  }
+  aside .item .count {
+    font: 10px/1 var(--mono);
+    color: var(--ink-400);
+  }
+  aside .item.active .count { color: var(--brand); }
+
+  main {
+    grid-area: main;
+    overflow: hidden;
+    display: grid;
+    grid-template-rows: auto auto 1fr;
+    min-width: 0;
+  }
+  .tabs {
+    display: flex;
+    gap: 0;
+    border-bottom: 1px solid var(--ink-200);
+    background: var(--panel);
+    padding: 0 14px;
+  }
+  .tabs button {
+    background: transparent;
+    border: 0;
+    border-bottom: 2px solid transparent;
+    padding: 10px 12px;
+    font: 12px/1 var(--sans);
+    color: var(--ink-500);
+    cursor: pointer;
+    margin-bottom: -1px;
+  }
+  .tabs button:hover { color: var(--ink-900); }
+  .tabs button.active {
+    color: var(--ink-900);
+    border-bottom-color: var(--brand);
+    font-weight: 600;
+  }
+
+  .toolbar {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    padding: 10px 14px;
+    background: var(--bg-soft);
+    border-bottom: 1px solid var(--ink-200);
+    flex-wrap: wrap;
+  }
+  .toolbar input[type="search"], .toolbar input[type="text"] {
+    flex: 1;
+    min-width: 220px;
+    padding: 6px 10px;
+    font: 12.5px var(--sans);
+    border: 1px solid var(--ink-200);
+    border-radius: 6px;
+    background: var(--panel);
+    color: var(--ink-900);
+  }
+  .toolbar input:focus { outline: 2px solid var(--brand); outline-offset: -1px; }
+  .toolbar .meta {
+    font: 11px var(--mono);
+    color: var(--ink-500);
+    white-space: nowrap;
+  }
+  .toolbar button, .toolbar select {
+    font: 11.5px var(--sans);
+    padding: 6px 10px;
+    border-radius: 6px;
+    background: var(--panel);
+    border: 1px solid var(--ink-200);
+    color: var(--ink-700);
+    cursor: pointer;
+  }
+  .toolbar button:hover, .toolbar select:hover { background: var(--ink-50); }
+  .toolbar button.primary {
+    background: var(--brand);
+    color: white;
+    border-color: var(--brand);
+  }
+  .toolbar button.primary:hover { background: #065f46; }
+  .toolbar .group {
+    display: inline-flex; gap: 0;
+    border: 1px solid var(--ink-200);
+    border-radius: 6px;
+    overflow: hidden;
+    background: var(--panel);
+  }
+  .toolbar .group button {
+    border: 0; border-radius: 0;
+    border-left: 1px solid var(--ink-200);
+    padding: 6px 9px;
+  }
+  .toolbar .group button:first-child { border-left: 0; }
+  .toolbar .group button.on {
+    background: var(--ink-900);
+    color: white;
+  }
+
+  .pane { overflow: auto; position: relative; }
+
+  table.grid {
+    border-collapse: collapse;
+    width: max-content;
+    min-width: 100%;
+    font: 12px var(--mono);
+  }
+  table.grid thead th {
+    position: sticky; top: 0;
+    background: var(--bg-soft);
+    border-bottom: 1px solid var(--ink-300);
+    text-align: left;
+    padding: 7px 10px;
+    font-weight: 600;
+    color: var(--ink-700);
+    font-size: 11px;
+    white-space: nowrap;
+    cursor: pointer;
+    user-select: none;
+    z-index: 2;
+  }
+  table.grid thead th:hover { background: var(--ink-100); }
+  table.grid thead th .sort-indicator {
+    display: inline-block;
+    width: 8px;
+    color: var(--brand);
+    margin-left: 2px;
+  }
+  table.grid thead th .type {
+    color: var(--ink-400);
+    font-weight: 400;
+    margin-left: 4px;
+    font-size: 10px;
+  }
+  table.grid tbody td {
+    padding: 5px 10px;
+    border-bottom: 1px solid var(--ink-100);
+    vertical-align: top;
+    white-space: pre-wrap;
+    word-break: break-word;
+    max-width: 480px;
+  }
+  table.grid tbody tr:hover { background: var(--ink-50); }
+  table.grid tbody tr.selected { background: var(--brand-soft); }
+  table.grid tbody td.num { text-align: right; font-variant-numeric: tabular-nums; }
+  table.grid tbody td.null { color: var(--ink-300); font-style: italic; }
+  table.grid tbody td.json {
+    background: var(--ink-50);
+    font-size: 11px;
+    color: var(--ink-700);
+    max-width: 360px;
+  }
+  table.grid tbody td.json pre {
+    margin: 0; font: inherit; white-space: pre-wrap;
+  }
+  table.grid tbody td.bool-true { color: var(--brand); font-weight: 600; }
+  table.grid tbody td.bool-false { color: var(--ink-400); }
+  table.grid tbody td .pill {
+    display: inline-block;
+    padding: 1px 6px;
+    border-radius: 4px;
+    font-size: 10.5px;
+    font-family: var(--sans);
+    background: var(--ink-100);
+    color: var(--ink-700);
+  }
+  table.grid tbody td .pill.brand { background: var(--brand-soft); color: var(--brand); }
+  table.grid tbody td .pill.rose { background: var(--rose-soft); color: var(--rose); }
+  table.grid tbody td .pill.amber { background: var(--amber-soft); color: var(--amber); }
+  table.grid tbody td .pill.sky { background: var(--sky-soft); color: var(--sky); }
+
+  .empty {
+    padding: 40px;
+    text-align: center;
+    color: var(--ink-400);
+    font: 13px var(--sans);
+  }
+
+  /* SQL editor */
+  .sql-wrap {
+    display: grid;
+    grid-template-rows: auto 1fr;
+    height: 100%;
+    overflow: hidden;
+  }
+  .sql-editor {
+    border-bottom: 1px solid var(--ink-200);
+    background: var(--panel);
+    display: grid;
+    grid-template-columns: 1fr 240px;
+    min-height: 180px;
+    max-height: 320px;
+  }
+  .sql-editor textarea {
+    width: 100%; height: 100%;
+    border: 0;
+    padding: 12px 14px;
+    font: 13px/1.5 var(--mono);
+    color: var(--ink-900);
+    background: var(--panel);
+    resize: none;
+    outline: none;
+    tab-size: 2;
+  }
+  .sql-snippets {
+    border-left: 1px solid var(--ink-200);
+    background: var(--bg-soft);
+    overflow-y: auto;
+    padding: 8px;
+  }
+  .sql-snippets .label {
+    font: 10px/1 var(--sans);
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.1em;
+    color: var(--ink-500);
+    padding: 6px 8px;
+  }
+  .sql-snippets button {
+    display: block;
+    width: 100%;
+    text-align: left;
+    background: transparent;
+    border: 0;
+    border-radius: 6px;
+    padding: 6px 8px;
+    font: 11.5px/1.35 var(--sans);
+    color: var(--ink-700);
+    cursor: pointer;
+    margin-bottom: 2px;
+  }
+  .sql-snippets button:hover { background: var(--panel); color: var(--ink-900); }
+  .sql-snippets button .name {
+    font-weight: 600;
+    color: var(--ink-900);
+    display: block;
+  }
+  .sql-snippets button .desc {
+    font-size: 10.5px;
+    color: var(--ink-500);
+    display: block;
+    margin-top: 1px;
+  }
+
+  /* schema view */
+  .schema-grid {
+    padding: 16px;
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(360px, 1fr));
+    gap: 12px;
+  }
+  .schema-card {
+    background: var(--panel);
+    border: 1px solid var(--ink-200);
+    border-radius: 8px;
+    overflow: hidden;
+  }
+  .schema-card .head {
+    padding: 8px 12px;
+    background: var(--bg-soft);
+    border-bottom: 1px solid var(--ink-200);
+    display: flex; justify-content: space-between; align-items: baseline;
+  }
+  .schema-card .head h3 {
+    margin: 0;
+    font: 13px var(--mono);
+    color: var(--ink-900);
+  }
+  .schema-card .head .count {
+    font: 10px var(--mono);
+    color: var(--brand);
+  }
+  .schema-card table {
+    width: 100%;
+    border-collapse: collapse;
+    font: 11.5px var(--mono);
+  }
+  .schema-card td {
+    padding: 4px 12px;
+    border-bottom: 1px solid var(--ink-100);
+    color: var(--ink-700);
+  }
+  .schema-card td.col { color: var(--ink-900); }
+  .schema-card td.type {
+    color: var(--ink-500);
+    text-align: right;
+    font-size: 10.5px;
+  }
+  .schema-card td .pk { color: var(--brand); font-weight: 700; margin-right: 4px; }
+  .schema-card td .nn { color: var(--amber); font-size: 9.5px; margin-left: 4px; }
+  .schema-card tr:last-child td { border-bottom: 0; }
+
+  /* drag-and-drop overlay */
+  .drop-overlay {
+    position: fixed; inset: 0;
+    background: rgba(4, 120, 87, 0.08);
+    border: 4px dashed var(--brand);
+    display: none;
+    align-items: center; justify-content: center;
+    font: 16px var(--sans);
+    color: var(--brand);
+    font-weight: 600;
+    pointer-events: none;
+    z-index: 100;
+  }
+  body.dragging .drop-overlay { display: flex; }
+
+  /* error banner */
+  .err-banner {
+    background: var(--rose-soft);
+    color: var(--rose);
+    padding: 8px 14px;
+    font: 12px var(--mono);
+    border-bottom: 1px solid #fecaca;
+    white-space: pre-wrap;
+  }
+
+  /* row detail drawer */
+  .drawer {
+    position: fixed;
+    top: 44px; right: 0; bottom: 0;
+    width: 440px;
+    background: var(--panel);
+    border-left: 1px solid var(--ink-200);
+    box-shadow: -4px 0 24px rgba(26,24,20,0.06);
+    overflow-y: auto;
+    transform: translateX(100%);
+    transition: transform 0.15s ease-out;
+    z-index: 50;
+  }
+  .drawer.open { transform: translateX(0); }
+  .drawer .dhead {
+    padding: 10px 14px;
+    border-bottom: 1px solid var(--ink-200);
+    background: var(--bg-soft);
+    display: flex; justify-content: space-between; align-items: center;
+    position: sticky; top: 0;
+  }
+  .drawer .dhead h3 { margin: 0; font: 13px var(--mono); }
+  .drawer .dhead button {
+    background: transparent; border: 0; cursor: pointer;
+    color: var(--ink-400); font-size: 18px; padding: 0 4px;
+  }
+  .drawer .dhead button:hover { color: var(--ink-900); }
+  .drawer .row {
+    display: grid;
+    grid-template-columns: 130px 1fr;
+    border-bottom: 1px solid var(--ink-100);
+    padding: 8px 14px;
+    gap: 10px;
+    font-size: 12px;
+  }
+  .drawer .row .k {
+    font: 10.5px var(--mono);
+    color: var(--ink-500);
+    text-transform: uppercase;
+    letter-spacing: 0.04em;
+    padding-top: 1px;
+  }
+  .drawer .row .v {
+    font: 12px var(--mono);
+    color: var(--ink-900);
+    word-break: break-word;
+    white-space: pre-wrap;
+  }
+  .drawer .row .v.null { color: var(--ink-300); font-style: italic; }
+  .drawer .row .v pre {
+    margin: 0; padding: 8px;
+    background: var(--ink-50); border-radius: 4px;
+    font: 11px var(--mono);
+    white-space: pre-wrap;
+  }
+</style>
+</head>
+<body>
+  <header>
+    <span class="logo" aria-hidden="true">
+      <svg width="14" height="14" viewBox="0 0 40 40" xmlns="http://www.w3.org/2000/svg">
+        <rect x="7.5" y="14.5" width="4" height="11" rx="2" fill="white"/>
+        <rect x="14.5" y="11" width="4" height="18" rx="2" fill="white"/>
+        <rect x="21.5" y="9" width="4" height="22" rx="2" fill="white"/>
+        <rect x="28.5" y="16.5" width="4" height="7" rx="2" fill="white"/>
+      </svg>
+    </span>
+    <h1>Greenroom DB Explorer</h1>
+    <label class="file-btn" title="Open a .db file">
+      Open .db
+      <input id="file-input" type="file" accept=".db,.sqlite,.sqlite3" />
+    </label>
+    <button id="reload-btn" title="Reload data/greenroom.db">Reload</button>
+    <div id="status" class="status"><span class="dot"></span><span id="status-text">Booting sql.js…</span></div>
+  </header>
+
+  <aside id="sidebar">
+    <div class="section">Tables</div>
+    <div id="table-list"></div>
+    <div class="section" style="margin-top: 14px;">Views</div>
+    <div id="view-list">
+      <div class="item" data-view="schema">Schema overview</div>
+      <div class="item" data-view="sql">SQL editor</div>
+    </div>
+  </aside>
+
+  <main>
+    <div id="err" class="err-banner" style="display:none;"></div>
+    <div class="tabs" id="tabs"></div>
+    <div class="toolbar" id="toolbar"></div>
+    <div class="pane" id="pane"></div>
+  </main>
+
+  <div class="drawer" id="drawer">
+    <div class="dhead">
+      <h3 id="drawer-title">Row</h3>
+      <button id="drawer-close" aria-label="Close">×</button>
+    </div>
+    <div id="drawer-body"></div>
+  </div>
+
+  <div class="drop-overlay">Drop a .db file to open</div>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/sql.js/1.10.3/sql-wasm.js"></script>
+<script>
+(() => {
+  // ---------- State ----------
+  const state = {
+    SQL: null,
+    db: null,
+    tables: [],          // [{ name, count, columns: [{cid,name,type,notnull,pk}] }]
+    activeView: null,    // {kind:'table',name} | {kind:'schema'} | {kind:'sql'}
+    tableState: {},      // per-table: { search, sortCol, sortDir, limit, offset, selectedRowId }
+    sqlText: '',
+    sqlResult: null,     // { columns, rows } | null
+    sqlError: null,
+  };
+
+  const JSON_COLUMNS = new Set([
+    'bonuses_json',
+    'recoups_json',
+    'calculation_json',
+  ]);
+
+  const TIMESTAMP_COLUMNS = new Set([
+    'created_at', 'captured_at', 'entered_at', 'completed_at',
+    'drafted_at', 'submitted_at', 'review_started_at', 'signed_at',
+    'disputed_at', 'revised_at', 'finalized_at', 'paid_at',
+  ]);
+
+  const SQL_SNIPPETS = [
+    {
+      name: 'Disputed settlements with deal context',
+      desc: 'Most useful starting query',
+      sql: `SELECT s.id AS show_id, a.name AS artist, sh.date,
+       d.deal_type, st.status,
+       st.gross_box_office, st.total_to_artist,
+       st.notes
+FROM settlements st
+JOIN shows sh ON sh.id = st.show_id
+JOIN deals d  ON d.show_id = sh.id
+JOIN artists a ON a.id = sh.artist_id
+JOIN agencies ag ON 1=1
+JOIN agents ag2 ON ag2.id = a.agent_id
+WHERE st.status = 'disputed'
+ORDER BY sh.date DESC;`
+    },
+    {
+      name: 'Deal type mix',
+      desc: 'How many of each deal type',
+      sql: `SELECT deal_type, COUNT(*) AS n,
+       ROUND(100.0 * COUNT(*) / (SELECT COUNT(*) FROM deals), 1) AS pct
+FROM deals
+GROUP BY deal_type
+ORDER BY n DESC;`
+    },
+    {
+      name: 'Deals with structured bonuses',
+      desc: 'Which deals have bonuses_json',
+      sql: `SELECT d.id, a.name AS artist, sh.date, d.deal_type, d.bonuses_json
+FROM deals d
+JOIN shows sh ON sh.id = d.show_id
+JOIN artists a ON a.id = sh.artist_id
+WHERE d.bonuses_json IS NOT NULL AND d.bonuses_json != ''
+ORDER BY sh.date DESC
+LIMIT 50;`
+    },
+    {
+      name: 'Settlement lifecycle counts',
+      desc: 'Where settlements currently sit',
+      sql: `SELECT status, COUNT(*) AS n
+FROM settlements
+GROUP BY status
+ORDER BY n DESC;`
+    },
+    {
+      name: 'Top-grossing shows',
+      desc: 'Highest gross box office',
+      sql: `SELECT sh.date, a.name AS artist, d.deal_type,
+       st.gross_box_office, st.total_to_artist, st.status
+FROM settlements st
+JOIN shows sh ON sh.id = st.show_id
+JOIN deals d ON d.show_id = sh.id
+JOIN artists a ON a.id = sh.artist_id
+ORDER BY st.gross_box_office DESC
+LIMIT 25;`
+    },
+    {
+      name: 'Comps that count toward gross',
+      desc: 'Source of dispute friction',
+      sql: `SELECT c.show_id, a.name AS artist, sh.date,
+       c.category, c.count, c.face_value, c.counts_toward_gross, c.notes
+FROM comps c
+JOIN shows sh ON sh.id = c.show_id
+JOIN artists a ON a.id = sh.artist_id
+WHERE c.counts_toward_gross = 1
+ORDER BY sh.date DESC;`
+    },
+    {
+      name: 'Recoups disputed (parsed)',
+      desc: 'Pull individual recoup items',
+      sql: `WITH r AS (
+  SELECT st.id AS settlement_id, st.show_id, st.recoups_json
+  FROM settlements st
+  WHERE st.recoups_json IS NOT NULL AND st.recoups_json != ''
+)
+SELECT show_id, recoups_json FROM r LIMIT 25;
+-- Tip: JSON parsing isn't loaded; eyeball the JSON column.`
+    },
+    {
+      name: 'Artist show counts',
+      desc: 'How often each artist plays',
+      sql: `SELECT a.name, a.genre, COUNT(sh.id) AS shows,
+       MIN(sh.date) AS first_show,
+       MAX(sh.date) AS last_show
+FROM artists a
+LEFT JOIN shows sh ON sh.artist_id = a.id
+GROUP BY a.id
+ORDER BY shows DESC, a.name;`
+    },
+    {
+      name: 'Agent dispute rate',
+      desc: 'Which agents dispute most',
+      sql: `SELECT ag.name AS agent, agcy.name AS agency,
+       COUNT(*) AS total,
+       SUM(CASE WHEN st.status='disputed' THEN 1 ELSE 0 END) AS disputed,
+       ROUND(100.0 * SUM(CASE WHEN st.status='disputed' THEN 1 ELSE 0 END)/COUNT(*),1) AS pct
+FROM settlements st
+JOIN shows sh ON sh.id = st.show_id
+JOIN artists a ON a.id = sh.artist_id
+JOIN agents ag ON ag.id = a.agent_id
+LEFT JOIN agencies agcy ON agcy.id = ag.agency_id
+GROUP BY ag.id
+HAVING total >= 3
+ORDER BY pct DESC, disputed DESC;`
+    },
+    {
+      name: 'Expense categories by total $',
+      desc: 'Where the money goes',
+      sql: `SELECT category,
+       COUNT(*) AS n,
+       ROUND(SUM(amount), 0) AS total,
+       ROUND(AVG(amount), 0) AS avg
+FROM expenses
+GROUP BY category
+ORDER BY total DESC;`
+    },
+    {
+      name: 'Coastal Spell dispute show',
+      desc: 'The hand-seeded narrative case',
+      sql: `SELECT sh.id, sh.date, a.name AS artist,
+       d.deal_type, d.guarantee_amount, d.percentage, d.expense_cap,
+       d.deal_notes_freetext,
+       st.status, st.gross_box_office, st.total_to_artist,
+       st.recoups_json
+FROM shows sh
+JOIN artists a ON a.id = sh.artist_id
+JOIN deals d ON d.show_id = sh.id
+LEFT JOIN settlements st ON st.show_id = sh.id
+WHERE sh.id = 'show_coastal_spell_dispute';`
+    },
+  ];
+
+  // ---------- DOM helpers ----------
+  const $ = (sel) => document.querySelector(sel);
+  const el = (tag, attrs = {}, ...kids) => {
+    const n = document.createElement(tag);
+    for (const [k, v] of Object.entries(attrs)) {
+      if (k === 'class') n.className = v;
+      else if (k === 'on') for (const [ev, fn] of Object.entries(v)) n.addEventListener(ev, fn);
+      else if (k === 'html') n.innerHTML = v;
+      else if (v != null) n.setAttribute(k, v);
+    }
+    for (const kid of kids.flat()) {
+      if (kid == null) continue;
+      n.appendChild(kid instanceof Node ? kid : document.createTextNode(String(kid)));
+    }
+    return n;
+  };
+  const fmtNum = (n) => Number.isFinite(n) ? n.toLocaleString() : '';
+  const setStatus = (text, cls = '') => {
+    $('#status-text').textContent = text;
+    const s = $('#status');
+    s.classList.remove('ok', 'err');
+    if (cls) s.classList.add(cls);
+  };
+  const showError = (msg) => {
+    const e = $('#err');
+    if (!msg) { e.style.display = 'none'; e.textContent = ''; return; }
+    e.style.display = 'block';
+    e.textContent = msg;
+  };
+
+  // ---------- DB loading ----------
+  async function bootSqlJs() {
+    setStatus('Booting sql.js…');
+    state.SQL = await initSqlJs({
+      locateFile: (f) => `https://cdnjs.cloudflare.com/ajax/libs/sql.js/1.10.3/${f}`,
+    });
+    setStatus('Ready');
+  }
+
+  async function loadFromUrl(url) {
+    setStatus('Fetching db…');
+    const res = await fetch(url, { cache: 'no-store' });
+    if (!res.ok) throw new Error(`HTTP ${res.status} fetching ${url}`);
+    const buf = await res.arrayBuffer();
+    openDb(new Uint8Array(buf));
+    setStatus(`Loaded ${url} · ${(buf.byteLength/1024).toFixed(0)} KB`, 'ok');
+  }
+
+  function openDb(uint8) {
+    if (state.db) state.db.close();
+    state.db = new state.SQL.Database(uint8);
+    reflectSchema();
+    renderSidebar();
+    if (!state.activeView) selectView({ kind: 'schema' });
+    else rerender();
+  }
+
+  function reflectSchema() {
+    state.tables = [];
+    const tbls = state.db.exec(`SELECT name FROM sqlite_master WHERE type='table' AND name NOT LIKE 'sqlite_%' ORDER BY name`);
+    if (!tbls.length) return;
+    for (const name of tbls[0].values.map(v => v[0])) {
+      const cols = state.db.exec(`PRAGMA table_info('${name}')`);
+      const columns = cols.length
+        ? cols[0].values.map(v => ({ cid: v[0], name: v[1], type: v[2], notnull: v[3], dflt: v[4], pk: v[5] }))
+        : [];
+      let count = 0;
+      try {
+        const c = state.db.exec(`SELECT COUNT(*) FROM '${name}'`);
+        count = c[0].values[0][0];
+      } catch {}
+      state.tables.push({ name, count, columns });
+    }
+  }
+
+  // ---------- Sidebar ----------
+  function renderSidebar() {
+    const list = $('#table-list');
+    list.innerHTML = '';
+    for (const t of state.tables) {
+      const item = el('div', {
+        class: 'item' + (state.activeView?.kind === 'table' && state.activeView.name === t.name ? ' active' : ''),
+        'data-table': t.name,
+        on: { click: () => selectView({ kind: 'table', name: t.name }) },
+      },
+        el('span', {}, t.name),
+        el('span', { class: 'count' }, fmtNum(t.count)),
+      );
+      list.appendChild(item);
+    }
+    document.querySelectorAll('#view-list .item').forEach(node => {
+      const kind = node.dataset.view;
+      node.classList.toggle('active', state.activeView?.kind === kind);
+      node.onclick = () => selectView({ kind });
+    });
+  }
+
+  // ---------- View selection ----------
+  function selectView(view) {
+    state.activeView = view;
+    renderSidebar();
+    rerender();
+  }
+
+  function rerender() {
+    renderTabs();
+    renderToolbar();
+    renderPane();
+  }
+
+  function renderTabs() { $('#tabs').innerHTML = ''; }
+
+  // ---------- Toolbar ----------
+  function renderToolbar() {
+    const bar = $('#toolbar');
+    bar.innerHTML = '';
+    if (!state.activeView) return;
+    if (state.activeView.kind === 'table') return renderTableToolbar(bar, state.activeView.name);
+    if (state.activeView.kind === 'sql') return renderSqlToolbar(bar);
+    if (state.activeView.kind === 'schema') return renderSchemaToolbar(bar);
+  }
+
+  function tableSt(name) {
+    if (!state.tableState[name]) {
+      state.tableState[name] = { search: '', sortCol: null, sortDir: 'asc', limit: 100, offset: 0 };
+    }
+    return state.tableState[name];
+  }
+
+  function renderTableToolbar(bar, name) {
+    const ts = tableSt(name);
+    const t = state.tables.find(x => x.name === name);
+    bar.append(
+      el('input', {
+        type: 'search', placeholder: `Filter rows in ${name}…`,
+        value: ts.search,
+        on: { input: (e) => { ts.search = e.target.value; ts.offset = 0; renderPane(); } },
+      }),
+      el('div', { class: 'meta' }, `${fmtNum(t.count)} rows · ${t.columns.length} cols`),
+      pageControls(name),
+      exportCsvBtn(name),
+    );
+  }
+
+  function renderSqlToolbar(bar) {
+    bar.append(
+      el('button', { class: 'primary', on: { click: runSql } }, 'Run (⌘↵)'),
+      el('div', { class: 'meta' }, state.sqlResult
+        ? `${fmtNum(state.sqlResult.rows.length)} rows · ${state.sqlResult.columns.length} cols`
+        : 'Cmd/Ctrl+Enter to run'),
+      el('div', { style: 'margin-left:auto' }),
+      state.sqlResult ? exportCsvBtnFor('query', state.sqlResult.columns, state.sqlResult.rows) : el('span'),
+    );
+  }
+
+  function renderSchemaToolbar(bar) {
+    bar.append(
+      el('div', { class: 'meta' }, `${state.tables.length} tables · ${state.tables.reduce((s, t) => s + t.count, 0).toLocaleString()} rows total`),
+    );
+  }
+
+  function pageControls(name) {
+    const ts = tableSt(name);
+    const t = state.tables.find(x => x.name === name);
+    const total = effectiveTotal(name);
+    const start = total === 0 ? 0 : ts.offset + 1;
+    const end = Math.min(total, ts.offset + ts.limit);
+    return el('div', { class: 'group' },
+      el('button', { on: { click: () => { ts.offset = 0; renderPane(); } } }, '⏮'),
+      el('button', { on: { click: () => { ts.offset = Math.max(0, ts.offset - ts.limit); renderPane(); } } }, '←'),
+      el('button', {}, `${fmtNum(start)}–${fmtNum(end)} of ${fmtNum(total)}`),
+      el('button', { on: { click: () => { if (ts.offset + ts.limit < total) { ts.offset += ts.limit; renderPane(); } } } }, '→'),
+      el('select', {
+        on: { change: (e) => { ts.limit = +e.target.value; ts.offset = 0; renderPane(); } },
+      }, ...[50, 100, 250, 500, 1000].map(v => {
+        const o = el('option', { value: v }, `${v}/page`);
+        if (v === ts.limit) o.selected = true;
+        return o;
+      })),
+    );
+  }
+
+  function effectiveTotal(name) {
+    const t = state.tables.find(x => x.name === name);
+    const ts = tableSt(name);
+    if (!ts.search) return t.count;
+    const r = buildTableQuery(name, { countOnly: true });
+    try {
+      const res = state.db.exec(r);
+      return res.length ? res[0].values[0][0] : 0;
+    } catch { return 0; }
+  }
+
+  // ---------- Pane ----------
+  function renderPane() {
+    const pane = $('#pane');
+    pane.innerHTML = '';
+    if (!state.activeView) return;
+    if (state.activeView.kind === 'table') return renderTablePane(pane, state.activeView.name);
+    if (state.activeView.kind === 'sql') return renderSqlPane(pane);
+    if (state.activeView.kind === 'schema') return renderSchemaPane(pane);
+  }
+
+  function buildTableQuery(name, opts = {}) {
+    const t = state.tables.find(x => x.name === name);
+    const ts = tableSt(name);
+    const cols = t.columns.map(c => `"${c.name}"`).join(', ');
+    let where = '';
+    if (ts.search) {
+      const safe = ts.search.replace(/'/g, "''");
+      const clauses = t.columns.map(c => `CAST("${c.name}" AS TEXT) LIKE '%${safe}%'`).join(' OR ');
+      where = ` WHERE ${clauses}`;
+    }
+    if (opts.countOnly) {
+      return `SELECT COUNT(*) FROM "${name}"${where}`;
+    }
+    let order = '';
+    if (ts.sortCol) order = ` ORDER BY "${ts.sortCol}" ${ts.sortDir.toUpperCase()}`;
+    else if (t.columns.find(c => c.pk)) order = ` ORDER BY "${t.columns.find(c => c.pk).name}"`;
+    const lim = ` LIMIT ${ts.limit} OFFSET ${ts.offset}`;
+    return `SELECT ${cols} FROM "${name}"${where}${order}${lim}`;
+  }
+
+  function renderTablePane(pane, name) {
+    const t = state.tables.find(x => x.name === name);
+    const ts = tableSt(name);
+    const sql = buildTableQuery(name);
+    let rows = [];
+    try {
+      const res = state.db.exec(sql);
+      rows = res.length ? res[0].values : [];
+      showError(null);
+    } catch (e) {
+      showError(`${e.message}\n\n${sql}`);
+    }
+    if (!rows.length) {
+      pane.appendChild(el('div', { class: 'empty' }, ts.search ? `No rows match "${ts.search}"` : 'Empty table'));
+      return;
+    }
+    pane.appendChild(buildGrid(t.columns, rows, { tableName: name }));
+  }
+
+  function buildGrid(columns, rows, ctx = {}) {
+    const ts = ctx.tableName ? tableSt(ctx.tableName) : null;
+    const table = el('table', { class: 'grid' });
+    const thead = el('thead');
+    const trh = el('tr');
+    for (const c of columns) {
+      const isSorted = ts && ts.sortCol === c.name;
+      const arrow = isSorted ? (ts.sortDir === 'asc' ? '▲' : '▼') : '';
+      const th = el('th', {
+        title: `${c.name}${c.type ? ' · ' + c.type : ''}${c.pk ? ' · PK' : ''}`,
+        on: ts ? { click: () => {
+          if (ts.sortCol === c.name) ts.sortDir = ts.sortDir === 'asc' ? 'desc' : 'asc';
+          else { ts.sortCol = c.name; ts.sortDir = 'asc'; }
+          renderPane();
+        } } : {},
+      },
+        c.name,
+        c.type ? el('span', { class: 'type' }, c.type) : null,
+        el('span', { class: 'sort-indicator' }, arrow),
+      );
+      trh.appendChild(th);
+    }
+    thead.appendChild(trh);
+    table.appendChild(thead);
+
+    const tbody = el('tbody');
+    for (let ri = 0; ri < rows.length; ri++) {
+      const row = rows[ri];
+      const tr = el('tr', {
+        on: { click: () => openDrawer(columns, row) },
+      });
+      for (let ci = 0; ci < columns.length; ci++) {
+        tr.appendChild(renderCell(columns[ci], row[ci]));
+      }
+      tbody.appendChild(tr);
+    }
+    table.appendChild(tbody);
+    return table;
+  }
+
+  function renderCell(col, val) {
+    if (val === null || val === undefined) {
+      return el('td', { class: 'null' }, 'NULL');
+    }
+    // JSON columns
+    if (JSON_COLUMNS.has(col.name) && typeof val === 'string') {
+      try {
+        const parsed = JSON.parse(val);
+        return el('td', { class: 'json' }, el('pre', {}, JSON.stringify(parsed, null, 2)));
+      } catch {
+        return el('td', {}, val);
+      }
+    }
+    // Boolean-ish
+    if ((col.name.startsWith('counts_toward_') || col.name === 'approved' || col.name === 'absorbed_by_venue') && (val === 0 || val === 1)) {
+      return el('td', { class: val === 1 ? 'bool-true' : 'bool-false' }, val === 1 ? 'TRUE' : 'false');
+    }
+    // Timestamps (Drizzle ms epoch)
+    if (TIMESTAMP_COLUMNS.has(col.name) && typeof val === 'number' && val > 1e9) {
+      const d = new Date(val * (val < 1e12 ? 1000 : 1));
+      return el('td', {}, `${d.toISOString().slice(0,16).replace('T',' ')}Z`);
+    }
+    // Status / enum pills
+    if (col.name === 'status' || col.name === 'deal_type' || col.name === 'category' || col.name === 'role') {
+      const variant = (() => {
+        if (val === 'disputed' || val === 'voided') return 'rose';
+        if (val === 'paid' || val === 'signed' || val === 'finalized') return 'brand';
+        if (val === 'revised' || val === 'in_review') return 'amber';
+        if (val === 'submitted') return 'sky';
+        return '';
+      })();
+      return el('td', {}, el('span', { class: 'pill ' + variant }, String(val)));
+    }
+    if (typeof val === 'number') {
+      // Money-ish
+      if (col.name.match(/(amount|gross|net|fees|cap|to_artist|total|expense|value)/) && val !== 0) {
+        return el('td', { class: 'num' }, val.toLocaleString(undefined, { style: 'currency', currency: 'USD' }));
+      }
+      return el('td', { class: 'num' }, val.toLocaleString());
+    }
+    return el('td', {}, String(val));
+  }
+
+  // ---------- Drawer ----------
+  function openDrawer(columns, row) {
+    $('#drawer-title').textContent = 'Row · ' + (state.activeView?.kind === 'table' ? state.activeView.name : 'query');
+    const body = $('#drawer-body');
+    body.innerHTML = '';
+    for (let i = 0; i < columns.length; i++) {
+      const c = columns[i], v = row[i];
+      const valNode = (() => {
+        if (v === null || v === undefined) return el('div', { class: 'v null' }, 'NULL');
+        if (JSON_COLUMNS.has(c.name) && typeof v === 'string') {
+          try {
+            const parsed = JSON.parse(v);
+            return el('div', { class: 'v' }, el('pre', {}, JSON.stringify(parsed, null, 2)));
+          } catch { /* fall through */ }
+        }
+        if (TIMESTAMP_COLUMNS.has(c.name) && typeof v === 'number' && v > 1e9) {
+          const d = new Date(v * (v < 1e12 ? 1000 : 1));
+          return el('div', { class: 'v' }, `${d.toISOString()} (${v})`);
+        }
+        return el('div', { class: 'v' }, String(v));
+      })();
+      body.appendChild(el('div', { class: 'row' }, el('div', { class: 'k' }, c.name), valNode));
+    }
+    $('#drawer').classList.add('open');
+  }
+  $('#drawer-close').onclick = () => $('#drawer').classList.remove('open');
+
+  // ---------- SQL view ----------
+  function renderSqlPane(pane) {
+    const wrap = el('div', { class: 'sql-wrap' });
+    const editor = el('div', { class: 'sql-editor' });
+    const ta = el('textarea', {
+      spellcheck: 'false',
+      placeholder: 'Type SQL here.  Ctrl/Cmd + Enter to run.',
+    });
+    ta.value = state.sqlText || `SELECT a.name AS artist, sh.date, d.deal_type, st.status, st.total_to_artist
+FROM settlements st
+JOIN shows sh ON sh.id = st.show_id
+JOIN deals d ON d.show_id = sh.id
+JOIN artists a ON a.id = sh.artist_id
+WHERE st.status = 'disputed'
+ORDER BY sh.date DESC;`;
+    ta.addEventListener('input', (e) => { state.sqlText = e.target.value; });
+    ta.addEventListener('keydown', (e) => {
+      if ((e.metaKey || e.ctrlKey) && e.key === 'Enter') {
+        e.preventDefault();
+        runSql();
+      }
+    });
+    state.sqlText = ta.value;
+
+    const snippets = el('div', { class: 'sql-snippets' },
+      el('div', { class: 'label' }, 'Quick queries'),
+      ...SQL_SNIPPETS.map(s => el('button', {
+        on: { click: () => { ta.value = s.sql; state.sqlText = s.sql; ta.focus(); } },
+      }, el('span', { class: 'name' }, s.name), el('span', { class: 'desc' }, s.desc))),
+    );
+
+    editor.append(ta, snippets);
+    wrap.append(editor);
+
+    const resultPane = el('div', { class: 'pane', style: 'overflow:auto;' });
+    if (state.sqlError) {
+      resultPane.appendChild(el('div', { class: 'err-banner' }, state.sqlError));
+    } else if (state.sqlResult) {
+      if (!state.sqlResult.rows.length) {
+        resultPane.appendChild(el('div', { class: 'empty' }, 'Query returned 0 rows.'));
+      } else {
+        const cols = state.sqlResult.columns.map(c => ({ name: c, type: '' }));
+        resultPane.appendChild(buildGrid(cols, state.sqlResult.rows));
+      }
+    } else {
+      resultPane.appendChild(el('div', { class: 'empty' }, 'Run a query to see results here.'));
+    }
+    wrap.append(resultPane);
+    pane.appendChild(wrap);
+  }
+
+  function runSql() {
+    if (state.activeView?.kind !== 'sql') return;
+    state.sqlError = null;
+    state.sqlResult = null;
+    try {
+      const text = state.sqlText.trim();
+      if (!text) return;
+      const res = state.db.exec(text);
+      // exec returns array (one per statement). Use the last that has columns.
+      const last = [...res].reverse().find(r => r.columns && r.columns.length);
+      if (!last) state.sqlResult = { columns: ['ok'], rows: [['(no rows returned)']] };
+      else state.sqlResult = { columns: last.columns, rows: last.values };
+    } catch (e) {
+      state.sqlError = e.message;
+    }
+    renderToolbar();
+    renderPane();
+  }
+
+  // ---------- Schema view ----------
+  function renderSchemaPane(pane) {
+    const grid = el('div', { class: 'schema-grid' });
+    for (const t of state.tables) {
+      const card = el('div', { class: 'schema-card' });
+      card.append(
+        el('div', { class: 'head' },
+          el('h3', {}, t.name),
+          el('span', { class: 'count' }, `${fmtNum(t.count)} rows`),
+        ),
+      );
+      const tbl = el('table');
+      for (const c of t.columns) {
+        const flags = [];
+        if (c.pk) flags.push(el('span', { class: 'pk' }, 'PK'));
+        if (c.notnull) flags.push(el('span', { class: 'nn' }, 'NOT NULL'));
+        tbl.appendChild(el('tr',
+          {
+            on: { click: () => selectView({ kind: 'table', name: t.name }) },
+            style: 'cursor:pointer',
+          },
+          el('td', { class: 'col' }, ...flags, c.name),
+          el('td', { class: 'type' }, c.type || ''),
+        ));
+      }
+      card.appendChild(tbl);
+      grid.appendChild(card);
+    }
+    pane.appendChild(grid);
+  }
+
+  // ---------- CSV export ----------
+  function toCsv(columns, rows) {
+    const esc = (v) => {
+      if (v === null || v === undefined) return '';
+      const s = String(v);
+      return /[",\n]/.test(s) ? `"${s.replace(/"/g, '""')}"` : s;
+    };
+    const out = [columns.map(esc).join(',')];
+    for (const r of rows) out.push(r.map(esc).join(','));
+    return out.join('\n');
+  }
+  function downloadCsv(name, csv) {
+    const blob = new Blob([csv], { type: 'text/csv;charset=utf-8' });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url; a.download = name + '.csv';
+    a.click();
+    setTimeout(() => URL.revokeObjectURL(url), 1000);
+  }
+  function exportCsvBtn(tableName) {
+    return el('button', {
+      title: 'Export current page to CSV',
+      on: { click: () => {
+        const t = state.tables.find(x => x.name === tableName);
+        const sql = buildTableQuery(tableName);
+        try {
+          const res = state.db.exec(sql);
+          if (!res.length) return;
+          downloadCsv(tableName, toCsv(res[0].columns, res[0].values));
+        } catch (e) { showError(e.message); }
+      } },
+    }, 'CSV');
+  }
+  function exportCsvBtnFor(name, columns, rows) {
+    return el('button', {
+      title: 'Export results to CSV',
+      on: { click: () => downloadCsv(name, toCsv(columns, rows)) },
+    }, 'CSV');
+  }
+
+  // ---------- File handling ----------
+  function fileToDb(file) {
+    setStatus(`Reading ${file.name}…`);
+    const reader = new FileReader();
+    reader.onload = () => {
+      try {
+        openDb(new Uint8Array(reader.result));
+        setStatus(`Loaded ${file.name} · ${(file.size/1024).toFixed(0)} KB`, 'ok');
+      } catch (e) {
+        setStatus('Open failed', 'err');
+        showError(e.message);
+      }
+    };
+    reader.readAsArrayBuffer(file);
+  }
+  $('#file-input').addEventListener('change', (e) => {
+    const f = e.target.files[0];
+    if (f) fileToDb(f);
+  });
+  $('#reload-btn').addEventListener('click', () => {
+    loadFromUrl('data/greenroom.db').catch(err => {
+      setStatus('Reload failed', 'err');
+      showError(err.message + '\n\nIf opening this HTML file directly (file://), browsers block fetch. Run a static server: `python3 -m http.server` and visit http://localhost:8000/db-explorer.html — or use the "Open .db" button.');
+    });
+  });
+
+  // drag-and-drop
+  ['dragenter', 'dragover'].forEach(ev => window.addEventListener(ev, (e) => {
+    e.preventDefault(); document.body.classList.add('dragging');
+  }));
+  ['dragleave', 'drop'].forEach(ev => window.addEventListener(ev, (e) => {
+    if (ev === 'dragleave' && e.target !== document.body && e.relatedTarget) return;
+    document.body.classList.remove('dragging');
+  }));
+  window.addEventListener('drop', (e) => {
+    e.preventDefault();
+    const f = e.dataTransfer.files[0];
+    if (f) fileToDb(f);
+  });
+
+  // global shortcut for SQL
+  document.addEventListener('keydown', (e) => {
+    if ((e.metaKey || e.ctrlKey) && e.key === 'k') {
+      e.preventDefault();
+      selectView({ kind: 'sql' });
+    }
+  });
+
+  // ---------- Boot ----------
+  (async () => {
+    try {
+      await bootSqlJs();
+      try {
+        await loadFromUrl('data/greenroom.db');
+      } catch (err) {
+        setStatus('Auto-load blocked — use "Open .db" or run via a static server', 'err');
+        showError(err.message + '\n\nTo enable auto-load, serve this folder over http: `python3 -m http.server 8000` then open http://localhost:8000/db-explorer.html — or drag the .db file onto the page.');
+        selectView({ kind: 'schema' });
+      }
+    } catch (e) {
+      setStatus('sql.js failed to load', 'err');
+      showError('Could not load sql.js from CDN. Check your network. ' + e.message);
+    }
+  })();
+})();
+</script>
+</body>
+</html>
