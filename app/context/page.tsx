@@ -75,16 +75,15 @@ export default function ContextPage() {
           trusts.
         </Step>
         <Step n={3}>
-          Click the green <strong>Settle show</strong> button. For most deal
-          types — Vs deals, % of net, door deals — the tool will tell you it
-          isn&apos;t supported. That empty state is the seam this case study
-          is about.
+          Click the green <strong>Settle show</strong> button. Vs and % of net
+          deals now render a line-by-line worksheet; door deals still fall
+          back to the unsupported state because ticketing does not split door
+          receipts from presales.
         </Step>
         <Step n={4}>
           Try Settle on a show with a <strong>Flat</strong> badge. The tool
-          actually works for those. Flat guarantees are the most common deal
-          type at The Crescent (about 33% of bookings), and one of only two
-          kinds the tool can settle end-to-end.
+          works for those too. Compare it with a Vs deal to see the guarantee
+          side, percentage side, and winning side called out separately.
         </Step>
         <Step n={5}>
           Open{" "}

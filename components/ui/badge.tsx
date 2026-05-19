@@ -85,14 +85,14 @@ const dealStyles: Record<string, { bg: string; fg: string; ring: string }> = {
     ring: "ring-ink-200/80",
   },
   percentage_of_net: {
-    bg: "bg-amber-50",
-    fg: "text-amber-800",
-    ring: "ring-amber-200/80",
+    bg: "bg-brand-50",
+    fg: "text-brand-800",
+    ring: "ring-brand-200/80",
   },
   vs: {
-    bg: "bg-amber-50",
-    fg: "text-amber-800",
-    ring: "ring-amber-200/80",
+    bg: "bg-brand-50",
+    fg: "text-brand-800",
+    ring: "ring-brand-200/80",
   },
   door: {
     bg: "bg-rose-50",

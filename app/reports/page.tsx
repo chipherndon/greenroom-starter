@@ -119,8 +119,8 @@ export default async function ReportsPage() {
                 {unsupportedPct}%
               </div>
               <p className="text-[12.5px] text-ink-600 mt-4 leading-relaxed max-w-sm">
-                At The Crescent, {unsupportedPct}% of deals — Vs deals, % of net, and
-                door deals — are deal types the in-app tool can&apos;t settle.
+                At The Crescent, {unsupportedPct}% of deals — now primarily
+                door deals — still need to be settled outside the in-app tool.
                 Across all customers, only about 18% actively use the tool at all.
               </p>
             </div>
