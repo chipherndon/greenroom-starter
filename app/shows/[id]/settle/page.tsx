@@ -30,6 +30,7 @@ import {
 } from "@/lib/format";
 import type { Settlement, Recoup } from "@/db/schema";
 import { Logomark } from "@/components/brand/logo";
+import { ExportWorksheetPdfButton } from "@/components/settle/export-worksheet-pdf";
 
 const RECOUP_LABELS: Record<Recoup["category"], string> = {
   marketing: "Marketing",
@@ -145,7 +146,12 @@ export default async function SettlePage({
             expenseRowCount={expenses.length}
           />
         ) : (
-          <SupportedSettlement calc={calc} existingSettlement={settlement} />
+          <SupportedSettlement
+            calc={calc}
+            existingSettlement={settlement}
+            artistName={artist?.name ?? "Artist"}
+            showDate={show.date}
+          />
         )}
 
         {recoups.length > 0 && <RecoupsSection recoups={recoups} />}
@@ -505,6 +511,8 @@ function UnsupportedDeal({
 function SupportedSettlement({
   calc,
   existingSettlement,
+  artistName,
+  showDate,
 }: {
   calc: Extract<
     ReturnType<typeof calculateSettlement>,
@@ -513,6 +521,8 @@ function SupportedSettlement({
   existingSettlement: NonNullable<
     Awaited<ReturnType<typeof getShowById>>
   >["settlement"];
+  artistName: string;
+  showDate: string;
 }) {
   return (
     <>
@@ -570,6 +580,19 @@ function SupportedSettlement({
           <div>
             <CardTitle>Settlement worksheet</CardTitle>
           </div>
+          <ExportWorksheetPdfButton
+            data={{
+              artistName,
+              showDate,
+              dealType: calc.dealType,
+              grossBoxOffice: calc.grossBoxOffice,
+              netBoxOffice: calc.netBoxOffice,
+              totalExpenses: calc.totalExpenses,
+              totalToArtist: calc.totalToArtist,
+              steps: calc.steps,
+              comparison: calc.comparison,
+            }}
+          />
         </CardHeader>
         <CardContent>
           <div className="divide-y divide-ink-100/80">
