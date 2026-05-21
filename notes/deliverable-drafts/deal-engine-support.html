@@ -1,0 +1,820 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>Greenroom — Deal Engine: What We Support Now</title>
+<style>
+  :root {
+    --ink: #1a1a1a;
+    --muted: #5a5a5a;
+    --rule: #d0d0d0;
+    --paper: #ffffff;
+    --card: #f4f7fb;
+    --card-border: #d8e2ee;
+    --pill: #eef0f3;
+    --pill-border: #d4d8de;
+    --good: #eef6ee;
+    --good-border: #cfe0cf;
+    --warn: #fdf6e3;
+    --warn-border: #ead9a8;
+    --bad: #faecec;
+    --bad-border: #e0c4c4;
+    --hl-yellow: #fff3a8;
+    --hl-purple: #e3d4f0;
+    --code-bg: #f4f4f4;
+  }
+  * { box-sizing: border-box; }
+  html, body {
+    margin: 0;
+    padding: 0;
+    background: var(--paper);
+    color: var(--ink);
+    font-family: -apple-system, BlinkMacSystemFont, "Inter", "Helvetica Neue", Arial, sans-serif;
+    font-size: 14px;
+    line-height: 1.5;
+  }
+  body {
+    max-width: 1280px;
+    margin: 0 auto;
+    padding: 32px 40px 80px;
+  }
+  h1 {
+    font-size: 20px;
+    font-weight: 600;
+    text-align: left;
+    margin: 0 0 28px 0;
+    max-width: 900px;
+    line-height: 1.4;
+    letter-spacing: -0.01em;
+  }
+  h2.section-label {
+    font-size: 12px;
+    font-weight: 600;
+    margin: 0 0 16px 0;
+    text-transform: uppercase;
+    letter-spacing: 0.06em;
+    color: var(--muted);
+  }
+  h3 {
+    font-size: 14px;
+    font-weight: 600;
+    margin: 0 0 8px 0;
+  }
+  section.block {
+    margin-top: 64px;
+    padding-top: 32px;
+    border-top: 1px solid #eaeaea;
+  }
+  section.block:first-of-type {
+    margin-top: 0;
+    padding-top: 0;
+    border-top: none;
+  }
+  .row {
+    display: grid;
+    gap: 16px;
+    margin-bottom: 0;
+  }
+  .row.cols-2 { grid-template-columns: 1fr 1fr; }
+  .row.cols-3 { grid-template-columns: 1fr 1fr 1fr; }
+  .card {
+    background: var(--card);
+    border: 1px solid var(--card-border);
+    border-radius: 8px;
+    padding: 16px 18px;
+  }
+  .card.good { background: var(--good); border-color: var(--good-border); }
+  .card.warn { background: var(--warn); border-color: var(--warn-border); }
+  .card.bad  { background: var(--bad);  border-color: var(--bad-border); }
+  .card p { margin: 4px 0; }
+  .card ul { margin: 4px 0 4px 18px; padding: 0; }
+  .card li { margin-bottom: 2px; }
+  .hl-y { background: var(--hl-yellow); padding: 0 3px; border-radius: 2px; }
+  .hl-p { background: var(--hl-purple); padding: 0 3px; border-radius: 2px; }
+  .pill {
+    display: inline-block;
+    background: var(--pill);
+    border: 1px solid var(--pill-border);
+    border-radius: 4px;
+    padding: 2px 8px;
+    margin: 2px 4px 2px 0;
+    font-size: 12px;
+    font-family: "SF Mono", "Menlo", "Consolas", monospace;
+  }
+  .pill.good { background: #dcecdc; border-color: #b8d4b8; }
+  .pill.bad  { background: #f4d5d5; border-color: #d9a8a8; }
+  code, .mono {
+    font-family: "SF Mono", "Menlo", "Consolas", monospace;
+    font-size: 12px;
+    background: var(--code-bg);
+    padding: 1px 5px;
+    border-radius: 3px;
+  }
+  .schema {
+    font-family: "SF Mono", "Menlo", "Consolas", monospace;
+    font-size: 12px;
+    background: #fafafa;
+    border: 1px solid var(--rule);
+    border-radius: 6px;
+    padding: 12px 14px;
+    margin: 8px 0;
+    white-space: pre;
+    overflow-x: auto;
+    line-height: 1.5;
+    color: #333;
+  }
+  .field-table {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: 13px;
+    margin-top: 8px;
+  }
+  .field-table th, .field-table td {
+    text-align: left;
+    padding: 6px 8px;
+    border-bottom: 1px solid var(--rule);
+    vertical-align: top;
+  }
+  .field-table th {
+    font-size: 11px;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    color: var(--muted);
+    border-bottom: 1px solid #999;
+  }
+  .field-table .why {
+    font-size: 13px;
+    color: var(--muted);
+  }
+  .field-name {
+    font-family: "SF Mono", "Menlo", "Consolas", monospace;
+    font-size: 12px;
+    color: #1a3a5c;
+  }
+  .arrow-down {
+    text-align: center;
+    font-size: 18px;
+    margin: 4px 0;
+    color: var(--muted);
+  }
+
+  /* Flow chart — single vertical column */
+  .flow-list {
+    display: flex;
+    flex-direction: column;
+    align-items: stretch;
+    gap: 6px;
+    margin: 12px auto 0;
+    max-width: 720px;
+  }
+  .flow-step {
+    background: #fafafa;
+    border: 1px solid var(--rule);
+    border-radius: 6px;
+    padding: 10px 14px;
+    font-size: 13px;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+  }
+  .flow-step .num {
+    flex: 0 0 auto;
+    background: #555;
+    color: #fff;
+    border-radius: 999px;
+    width: 20px;
+    height: 20px;
+    line-height: 20px;
+    text-align: center;
+    font-size: 11px;
+    font-weight: 600;
+  }
+  .flow-step.off-gross { background: #faecec; border-color: #e0c4c4; }
+  .flow-step.inside    { background: #fdf6e3; border-color: #ead9a8; }
+  .flow-step.outside   { background: #ede4f5; border-color: #cab8de; }
+  .flow-step.split     { background: #e4efe4; border-color: #c0d6c0; }
+  .flow-step.post      { background: #e4eaf2; border-color: #bcc8d8; }
+  .flow-step.total     { background: #cfe9d6; border-color: #a8c8a8; font-weight: 600; }
+  .flow-down {
+    text-align: center;
+    font-size: 14px;
+    color: #999;
+    line-height: 1;
+  }
+
+  /* Deal-type matrix */
+  .matrix {
+    width: 100%;
+    border-collapse: collapse;
+    margin-top: 8px;
+    font-size: 13px;
+  }
+  .matrix th, .matrix td {
+    padding: 8px 10px;
+    border: 1px solid var(--rule);
+    text-align: center;
+  }
+  .matrix th {
+    background: #f4f4f4;
+    font-weight: 600;
+    font-size: 11px;
+    text-transform: uppercase;
+    letter-spacing: 0.04em;
+    color: var(--muted);
+  }
+  .matrix td.deal {
+    text-align: left;
+    font-weight: 600;
+    font-family: "SF Mono", "Menlo", "Consolas", monospace;
+    font-size: 12px;
+  }
+  .matrix .yes { background: var(--good); }
+  .matrix .no  { background: var(--bad); color: var(--muted); }
+  .matrix .partial { background: var(--warn); }
+
+  .legend {
+    display: flex;
+    gap: 16px;
+    justify-content: flex-start;
+    margin-top: 10px;
+    font-size: 12px;
+    color: var(--muted);
+  }
+  .legend .swatch {
+    display: inline-block;
+    width: 12px;
+    height: 12px;
+    border-radius: 2px;
+    margin-right: 5px;
+    vertical-align: middle;
+    border: 1px solid rgba(0,0,0,0.1);
+  }
+
+  .callout {
+    border-left: 3px solid var(--rule);
+    padding: 10px 14px;
+    margin: 12px 0;
+    background: #fafafa;
+    font-size: 13px;
+    border-radius: 0 4px 4px 0;
+  }
+  .callout.bad { border-left-color: #c25a5a; background: var(--bad); }
+  .callout.good { border-left-color: #4f8a4f; background: var(--good); }
+
+  .small { font-size: 12px; color: var(--muted); }
+
+  /* Problem-statement section */
+  .problem-intro {
+    background: #f7f5ef;
+    border: 1px solid #e0dcd0;
+    border-radius: 10px;
+    padding: 22px 26px;
+    margin-bottom: 28px;
+  }
+  .problem-intro h2 {
+    font-size: 15px;
+    font-weight: 600;
+    margin: 0 0 14px 0;
+    text-align: center;
+    line-height: 1.45;
+    max-width: 720px;
+    margin-left: auto;
+    margin-right: auto;
+    color: var(--ink);
+  }
+  .problem-cols {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 24px;
+    margin-top: 14px;
+  }
+  .problem-col h3 {
+    font-size: 12px;
+    text-transform: uppercase;
+    letter-spacing: 0.06em;
+    color: var(--muted);
+    margin: 0 0 10px 0;
+    font-weight: 600;
+  }
+  .problem-card {
+    background: #eaf2fb;
+    border: 1px solid #b8cce6;
+    border-radius: 8px;
+    padding: 12px 14px;
+    font-size: 13px;
+    line-height: 1.5;
+    margin-bottom: 10px;
+  }
+  .problem-card p { margin: 4px 0; }
+  .problem-card .title {
+    font-weight: 600;
+    margin-bottom: 6px;
+  }
+  .problem-card .dispute-result {
+    color: #b03a3a;
+    font-style: italic;
+    margin-top: 6px;
+  }
+  .problem-twocol {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 12px;
+  }
+  .downstream {
+    margin-top: 16px;
+    text-align: center;
+  }
+  .downstream h3 {
+    font-size: 12px;
+    text-transform: uppercase;
+    letter-spacing: 0.06em;
+    color: var(--muted);
+    margin: 0 0 10px 0;
+  }
+  .downstream-pills {
+    display: flex;
+    gap: 10px;
+    justify-content: center;
+    flex-wrap: wrap;
+  }
+  .downstream-pill {
+    background: #f5e3ec;
+    border: 1px solid #d9b6c7;
+    border-radius: 6px;
+    padding: 6px 14px;
+    font-size: 13px;
+  }
+  .intro-divider {
+    text-align: center;
+    margin: 20px 0 8px;
+    font-size: 11px;
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+    color: var(--muted);
+  }
+  .intro-divider::before,
+  .intro-divider::after {
+    content: "";
+    display: inline-block;
+    width: 60px;
+    height: 1px;
+    background: var(--rule);
+    vertical-align: middle;
+    margin: 0 12px;
+  }
+
+  /* Demo links */
+  .demos {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 12px;
+    margin-top: 8px;
+  }
+  .demo {
+    display: block;
+    text-decoration: none;
+    color: var(--ink);
+    background: #f4f7fb;
+    border: 1px solid #d8e2ee;
+    border-radius: 8px;
+    padding: 14px 16px;
+    transition: background 0.12s ease, border-color 0.12s ease;
+  }
+  .demo:hover {
+    background: #eaf1fa;
+    border-color: #b8cce6;
+  }
+  .demo .demo-title {
+    font-weight: 600;
+    font-size: 14px;
+    margin-bottom: 4px;
+    color: #1a3a5c;
+  }
+  .demo .demo-sub {
+    font-size: 12px;
+    color: var(--muted);
+    margin-bottom: 8px;
+  }
+  .demo .demo-url {
+    font-family: "SF Mono", "Menlo", "Consolas", monospace;
+    font-size: 11px;
+    color: var(--muted);
+    word-break: break-all;
+  }
+  .demo .demo-tags {
+    margin: 6px 0 4px;
+  }
+</style>
+</head>
+<body>
+
+<!-- ============ SECTION 0: Problem statement ============ -->
+<section class="problem-intro">
+  <h2>Greenroom can't model industry-standard deals at creation: the engine doesn't handle Vs or %-of-net, and recoup terms have no structured representation. Structured deal entry closes both.</h2>
+
+  <div class="problem-cols">
+    <div class="problem-col">
+      <h3>The deal-types problem</h3>
+      <div class="problem-card">
+        <div class="title">Versus &amp; percent-of-net unsupported</div>
+        <p><strong>82%</strong> of customers currently go around the product to make settlements work.</p>
+        <p><strong>53%</strong> currently use the app for definition of terms, and calculate in spreadsheets.</p>
+        <p>— Data model supports these deal types.</p>
+        <p>— Engine did not.</p>
+        <p>Hacky deal-definition use of our settlement system, while calculations occur in spreadsheets.</p>
+      </div>
+    </div>
+
+    <div class="problem-col">
+      <h3>The ambiguity problem</h3>
+      <div class="problem-twocol">
+        <div class="problem-card">
+          <div class="title">The Coastal Spell dispute thread</div>
+          <p>The difference looks like the marketing recoup ($900). Was that supposed to come off the gross <span class="hl-y">before we calculated net</span>, or is it part of the <span class="hl-p">expenses bucket capped at $2,500</span>?</p>
+          <p class="dispute-result">Resulted in $720 loss and lost trust — Marcus said there was no clear "version of truth."</p>
+        </div>
+        <div class="problem-card">
+          <div class="title">Transcripts</div>
+          <p>Marcus said ambiguous recoups resulted in a <span class="hl-y">$80k loss in gross revenue</span> from a bad settlement.</p>
+          <p>Diego, Mariana, and Sarah Kim all report ambiguous terms to be a top recurring issue in settlement.</p>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="downstream">
+    <h3>↓ Downstream problems</h3>
+    <div class="downstream-pills">
+      <span class="downstream-pill">Elevated disputes</span>
+      <span class="downstream-pill">UI reporting drift (free text)</span>
+      <span class="downstream-pill">Poor post-show comms</span>
+    </div>
+  </div>
+</section>
+
+<!-- ============ Demos (jump straight from problem to working examples) ============ -->
+<section class="block">
+<h2 class="section-label">See it working — fixture demos</h2>
+<p class="small">Each link opens a settlement worksheet seeded to exercise one slice of the new engine behavior. The detailed explanation of how each piece works follows below. Local dev server must be running on port 3001.</p>
+
+<div class="demos">
+  <a class="demo" href="http://localhost:3001/shows/show_fixture_recoup_post_split_gross_vs">
+    <div class="demo-title">Post-split recoup on a Vs / %-of-gross deal</div>
+    <div class="demo-sub">Demonstrates the <code>vs</code> deal type with <code>percentageBasis: gross</code> picking a winner, then a <code>post_split</code> recoup coming off the artist's payout.</div>
+    <div class="demo-tags">
+      <span class="pill">vs</span>
+      <span class="pill">post_split</span>
+    </div>
+    <div class="demo-url">/shows/show_fixture_recoup_post_split_gross_vs</div>
+  </a>
+
+  <a class="demo" href="http://localhost:3001/shows/show_fixture_recoup_outside_cap_ratchet">
+    <div class="demo-title">Outside-cap recoup combined with a tier ratchet</div>
+    <div class="demo-sub">Recoup at <code>outside_cap_pre_split</code> reduces net <em>before</em> the artist split, and a <code>tier_ratchet</code> bonus applies tiered percentages on the result.</div>
+    <div class="demo-tags">
+      <span class="pill">outside_cap_pre_split</span>
+      <span class="pill">tier_ratchet</span>
+    </div>
+    <div class="demo-url">/shows/show_fixture_recoup_outside_cap_ratchet</div>
+  </a>
+
+  <a class="demo" href="http://localhost:3001/shows/show_fixture_recoup_off_gross">
+    <div class="demo-title">Off-gross recoup</div>
+    <div class="demo-sub">Recoup comes off the gross box office <em>before</em> fees and net are calculated — the structured answer to the Coastal Spell "before we calculated net" question.</div>
+    <div class="demo-tags">
+      <span class="pill">off_gross</span>
+    </div>
+    <div class="demo-url">/shows/show_fixture_recoup_off_gross</div>
+  </a>
+
+  <a class="demo" href="http://localhost:3001/shows/show_fixture_recoup_inside_cap_withdrawn">
+    <div class="demo-title">Inside-cap recoup with a withdrawn application</div>
+    <div class="demo-sub">A clause at <code>inside_expense_cap</code> shares the <code>expenseCap</code> ceiling — and the settlement-time application is marked <code>withdrawn</code>, so it's skipped entirely.</div>
+    <div class="demo-tags">
+      <span class="pill">inside_expense_cap</span>
+      <span class="pill">status: withdrawn</span>
+    </div>
+    <div class="demo-url">/shows/show_fixture_recoup_inside_cap_withdrawn</div>
+  </a>
+</div>
+</section>
+
+<div class="intro-divider">How it works</div>
+
+<h1>Greenroom's deal engine now handles Vs and %-of-net, recoups with structured waterfall positions, tier ratchets, and an expense cap. Structured deal entry closes both gaps.</h1>
+
+<!-- ============ SECTION 1: Deal Types ============ -->
+<section class="block">
+<h2 class="section-label">1. Supported deal types</h2>
+<div class="row cols-2">
+  <div class="card good">
+    <h3>Now supported by the engine</h3>
+    <p><span class="pill good">flat</span> guarantee only, no expense deduction from artist</p>
+    <p><span class="pill good">percentage_of_gross</span> artist % of adjusted gross</p>
+    <p><span class="pill good">percentage_of_net</span> artist % of net after expenses</p>
+    <p><span class="pill good">vs</span> <em>greater of</em> guarantee or % side — ties go to %</p>
+    <p class="small">Vs honors <code>percentageBasis</code> (<code>gross</code> or <code>net</code>) on the deal.</p>
+  </div>
+  <div class="card bad">
+    <h3>Not supported</h3>
+    <p><span class="pill bad">door</span></p>
+    <p class="small">Returns <code>{ supported: false, kind: "deal_type_unsupported" }</code>. Door deals need split door receipts &amp; presales that ticketing data doesn't carry yet.</p>
+  </div>
+</div>
+
+</section>
+
+<!-- ============ SECTION 2: Mix & match matrix ============ -->
+<section class="block">
+<h2 class="section-label">2. Mix &amp; match — what plugs into what</h2>
+<p class="small">Recoups, bonuses, and ratchets are all <em>orthogonal</em> to the base deal type. Any combination is legal on a supported deal.</p>
+<table class="matrix">
+  <thead>
+    <tr>
+      <th>Deal type</th>
+      <th>Recoups<br/>(4 waterfall slots)</th>
+      <th>Gross / sellout / attendance bonuses</th>
+      <th>Tier ratchet<br/>(net $ bands)</th>
+      <th>Tier ratchet<br/>(capacity %)</th>
+      <th>Expense cap</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <td class="deal">flat</td>
+      <td class="yes">yes</td>
+      <td class="yes">yes</td>
+      <td class="no">n/a — no % side</td>
+      <td class="no">n/a — no % side</td>
+      <td class="partial">passes through<br/>(reporting only)</td>
+    </tr>
+    <tr>
+      <td class="deal">percentage_of_gross</td>
+      <td class="yes">yes</td>
+      <td class="yes">yes</td>
+      <td class="yes">yes</td>
+      <td class="yes">yes</td>
+      <td class="yes">yes</td>
+    </tr>
+    <tr>
+      <td class="deal">percentage_of_net</td>
+      <td class="yes">yes</td>
+      <td class="yes">yes</td>
+      <td class="yes">yes</td>
+      <td class="yes">yes</td>
+      <td class="yes">yes</td>
+    </tr>
+    <tr>
+      <td class="deal">vs</td>
+      <td class="yes">yes</td>
+      <td class="yes">yes</td>
+      <td class="yes">yes</td>
+      <td class="yes">yes</td>
+      <td class="yes">yes</td>
+    </tr>
+    <tr>
+      <td class="deal">door</td>
+      <td class="no">—</td>
+      <td class="no">—</td>
+      <td class="no">—</td>
+      <td class="no">—</td>
+      <td class="no">—</td>
+    </tr>
+  </tbody>
+</table>
+<div class="legend">
+  <span><span class="swatch" style="background:var(--good)"></span>supported</span>
+  <span><span class="swatch" style="background:var(--warn)"></span>partial / reporting</span>
+  <span><span class="swatch" style="background:var(--bad)"></span>not supported</span>
+</div>
+
+</section>
+
+<!-- ============ SECTION 3: Recoup data model ============ -->
+<section class="block">
+<h2 class="section-label">3. Recoup data model — two coupled JSON blobs</h2>
+<div class="callout">
+  Recoups live in <strong>two places</strong>: a <code>RecoupClause</code> on the deal (negotiated up front) and a <code>Recoup</code> on the settlement (the actual billed amount). The settlement-time row references the clause by <code>id</code>.
+</div>
+
+<div class="row cols-2">
+  <!-- LEFT: RecoupClause -->
+  <div class="card">
+    <h3>A. Deal-time clause — <code>deals.recoupClausesJson</code></h3>
+    <p class="small">Negotiated rights agreed up front. Array of <code>RecoupClause</code>.</p>
+    <div class="schema">[
+  {
+    id: string,
+    label: string,
+    category: …,
+    waterfallPosition: …,
+    amountModel: …,
+    fixedAmount: number | null,
+    capAmount: number | null,
+    overageAbsorbedBy: …,
+    overageSplitPct: number | null,
+    rationale: string | null
+  }
+]</div>
+    <table class="field-table">
+      <thead><tr><th>field</th><th>values</th><th>why</th></tr></thead>
+      <tbody>
+        <tr>
+          <td class="field-name">category</td>
+          <td><code>marketing</code>, <code>prior_advance</code>, <code>production_overage</code>, <code>hospitality_overage</code>, <code>backline</code>, <code>damages</code>, <code>other</code></td>
+          <td class="why">Categories the Coastal Spell thread actually argues about.</td>
+        </tr>
+        <tr>
+          <td class="field-name">waterfallPosition</td>
+          <td><code>off_gross</code>, <code>inside_expense_cap</code>, <code>outside_cap_pre_split</code>, <code>post_split</code></td>
+          <td class="why">The <span class="hl-y">$900 marketing recoup</span> question — gross or in the <span class="hl-p">$2,500 expense bucket</span> — has a structured answer now.</td>
+        </tr>
+        <tr>
+          <td class="field-name">amountModel</td>
+          <td><code>fixed</code>, <code>actual_up_to</code>, <code>actual_uncapped</code></td>
+          <td class="why">"$500 marketing" vs. "actuals up to $2,500" vs. "whatever it costs" are three different deals.</td>
+        </tr>
+        <tr>
+          <td class="field-name">fixedAmount</td>
+          <td>number, required when <code>amountModel = fixed</code></td>
+          <td class="why">The agreed dollar number.</td>
+        </tr>
+        <tr>
+          <td class="field-name">capAmount</td>
+          <td>number, required when <code>amountModel = actual_up_to</code></td>
+          <td class="why">Hard ceiling on actuals.</td>
+        </tr>
+        <tr>
+          <td class="field-name">overageAbsorbedBy</td>
+          <td><code>venue</code>, <code>artist</code>, <code>split</code>, <code>n_a</code></td>
+          <td class="why">Who eats it when actuals blow past the cap.</td>
+        </tr>
+        <tr>
+          <td class="field-name">overageSplitPct</td>
+          <td>0–1, required when <code>overageAbsorbedBy = split</code></td>
+          <td class="why">Artist's share of the overage in a split.</td>
+        </tr>
+        <tr>
+          <td class="field-name">rationale</td>
+          <td>free text</td>
+          <td class="why">Booker note — surfaces during dispute review.</td>
+        </tr>
+      </tbody>
+    </table>
+  </div>
+
+  <!-- RIGHT: Recoup application -->
+  <div class="card">
+    <h3>B. Settlement-time application — <code>settlements.recoupsJson</code></h3>
+    <p class="small">Actual billed amounts at settlement. Array of <code>Recoup</code>. Joins back to clause by <code>id</code>.</p>
+    <div class="schema">[
+  {
+    id: string,            // matches RecoupClause.id
+    category: …,
+    label: string,
+    amount: number,        // actual billed
+    status: …
+  }
+]</div>
+    <table class="field-table">
+      <thead><tr><th>field</th><th>values</th><th>why</th></tr></thead>
+      <tbody>
+        <tr>
+          <td class="field-name">id</td>
+          <td>matches <code>RecoupClause.id</code>, <em>or</em> standalone</td>
+          <td class="why">Standalone is the legacy fallback — treated as <code>outside_cap_pre_split</code>.</td>
+        </tr>
+        <tr>
+          <td class="field-name">category</td>
+          <td><code>marketing</code>, <code>hospitality_overage</code>, <code>production_overage</code>, <code>prior_advance</code>, <code>backline</code>, <code>damages</code>, <code>other</code></td>
+          <td class="why">Same enum as the clause; unknown → <code>other</code>.</td>
+        </tr>
+        <tr>
+          <td class="field-name">amount</td>
+          <td>number (dollars)</td>
+          <td class="why">What the venue is actually billing.</td>
+        </tr>
+        <tr>
+          <td class="field-name">status</td>
+          <td><code>agreed</code>, <code>disputed</code>, <code>withdrawn</code></td>
+          <td class="why">Recoups have their own lifecycle — can be disputed after the rest is signed. <code>withdrawn</code> skips the line entirely.</td>
+        </tr>
+      </tbody>
+    </table>
+  </div>
+</div>
+
+</section>
+
+<!-- ============ SECTION 4: Engine flow ============ -->
+<section class="block">
+<h2 class="section-label">4. How the engine applies recoups — waterfall flow</h2>
+<p class="small">Every supported deal type runs the same waterfall. Each clause's <code>waterfallPosition</code> picks which bucket it falls into. Flow reads left-to-right, then drops to the next row.</p>
+
+<div class="flow-list">
+  <div class="flow-step off-gross">
+    <div class="num">1</div>
+    <div><strong>Gross box office</strong> &nbsp;<span class="small">tickets + counted comps</span></div>
+  </div>
+  <div class="flow-down">↓</div>
+  <div class="flow-step off-gross">
+    <div class="num">2</div>
+    <div><strong>− off-gross recoups</strong> &nbsp;<span class="small"><code>off_gross</code> clauses come off gross before fees</span></div>
+  </div>
+  <div class="flow-down">↓</div>
+  <div class="flow-step off-gross">
+    <div class="num">3</div>
+    <div><strong>− fees</strong> &nbsp;<span class="small">= <strong>net box office</strong></span></div>
+  </div>
+  <div class="flow-down">↓</div>
+  <div class="flow-step inside">
+    <div class="num">4</div>
+    <div><strong>− expenses + inside-cap recoups</strong> &nbsp;<span class="small"><code>inside_expense_cap</code> clauses share the <code>expenseCap</code> ceiling with regular expenses</span></div>
+  </div>
+  <div class="flow-down">↓</div>
+  <div class="flow-step outside">
+    <div class="num">5</div>
+    <div><strong>− outside-cap recoups</strong> &nbsp;<span class="small"><code>outside_cap_pre_split</code> clauses come off net before the artist split</span></div>
+  </div>
+  <div class="flow-down">↓</div>
+  <div class="flow-step split">
+    <div class="num">6</div>
+    <div><strong>Artist split</strong> &nbsp;<span class="small">flat / %-of-gross / %-of-net / vs (winner) — applied to the result of step 5</span></div>
+  </div>
+  <div class="flow-down">↓</div>
+  <div class="flow-step post">
+    <div class="num">7</div>
+    <div><strong>− post-split recoups</strong> &nbsp;<span class="small"><code>post_split</code> clauses + any cap overages absorbed by the artist</span></div>
+  </div>
+  <div class="flow-down">↓</div>
+  <div class="flow-step total">
+    <div class="num">8</div>
+    <div><strong>Total to artist</strong></div>
+  </div>
+</div>
+
+<div class="callout good" style="margin-top:14px">
+  <strong>Amount resolution per clause</strong> — <code>fixed</code> → use <code>fixedAmount</code>. <code>actual_up_to</code> → <code>min(billed, capAmount)</code>, route overage by <code>overageAbsorbedBy</code>. <code>actual_uncapped</code> → use full billed <code>amount</code>. <code>withdrawn</code> applications skip entirely.
+</div>
+
+</section>
+
+<!-- ============ SECTION 5: Tier ratchets ============ -->
+<section class="block">
+<h2 class="section-label">5. Tier ratchets — partially supported, with a known sharp edge</h2>
+<div class="row cols-3">
+  <div class="card good">
+    <h3>What works</h3>
+    <p><span class="pill good">net-dollar bands</span></p>
+    <p>e.g. "60% of net to $4,000, then 70% above" — payout is computed band-by-band, each band gets its own line in the worksheet.</p>
+    <p><span class="pill good">capacity-fraction tiers</span></p>
+    <p>e.g. "80% to 100% sold @ 85%" — uses <code>tickets / capacity</code>, picks the single matching tier.</p>
+  </div>
+  <div class="card warn">
+    <h3>Validations enforced</h3>
+    <ul>
+      <li>tier 1 must start at <code>0</code></li>
+      <li>tiers must be sorted by <code>from</code></li>
+      <li>no gaps and no overlaps between bands</li>
+      <li>only the last tier may be open-ended (<code>to: null</code>)</li>
+      <li><code>to</code> must be greater than <code>from</code></li>
+    </ul>
+    <p class="small">Violations return <code>deal_misconfigured</code> with a fixable reason.</p>
+  </div>
+  <div class="card bad">
+    <h3>Known sharp edge — basis inference</h3>
+    <p>The schema does <strong>not</strong> distinguish net-dollar tiers from capacity-fraction tiers. The engine guesses with a heuristic:</p>
+    <div class="schema">if any from/to is &gt; 0 and &lt; 1
+  → capacity_fraction
+else
+  → net_dollars</div>
+    <p>Works because seed data has a gap (fractions ≤ 1, dollars ≥ 4000) but a deal with a $0.50 band would mis-classify.</p>
+    <p class="small"><strong>Fix queued:</strong> add an explicit <code>basis: "net_dollars" | "capacity_fraction"</code> discriminator on the ratchet bonus. See <code>lib/dealMath.ts:521</code>.</p>
+  </div>
+</div>
+
+</section>
+
+<!-- ============ SECTION 6: What this closes ============ -->
+<section class="block">
+<h2 class="section-label">6. What structured deal entry closes</h2>
+<div class="row cols-2">
+  <div class="card good">
+    <h3>Deal types problem — closed</h3>
+    <p>Vs and %-of-net are first-class on the engine, not just the schema. The 82% of customers going around the product, and the 53% using it only for term definitions, can do the math here now.</p>
+  </div>
+  <div class="card good">
+    <h3>Ambiguity problem — closed for the structured path</h3>
+    <p>The <span class="hl-y">Coastal Spell marketing recoup</span> has a single structured answer: <code>waterfallPosition</code> says where it lands, <code>amountModel</code> + <code>capAmount</code> say how much. The <span class="hl-p">$2,500 expense bucket</span> question is no longer free-text vs. free-text.</p>
+  </div>
+</div>
+
+</section>
+
+<p class="small" style="text-align:center; margin-top:48px;">
+  Sources: <code>lib/dealMath.ts</code>, <code>db/schema.ts</code>
+</p>
+
+</body>
+</html>

@@ -34,6 +34,8 @@ Overall, the backend was clearly punted early on in development, it's bones aren
 * dealType is vs, percentage_of_gross, percentage_of_net, and door.
 * **IMPORTANT**: Deals can be modified and current model does not allow for modification, users update free text in place of modifying structure fields.
 
+Many issues surfaced in the data, reported in detail in PRD to avoid repeating them here.
+
 ## Frontend
 
 Our frontend has major UX issues. The `/shows` page is difficult to explore, sort and fitler should be implemented for better experience (command exists but is not indicated anywhere). The list left side indicators are non-descriptive, deal text is not informative enough to justify its presence, and dispute status is not always correct. Top-line stats are done well, though I think a chart would be better to show the trends rather than nets.

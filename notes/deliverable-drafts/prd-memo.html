@@ -1,0 +1,204 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>Greenroom Case Study Memo — Chip Herndon</title>
+<style>
+  @page {
+    size: letter;
+    margin: 0.6in;
+  }
+  :root {
+    --ink: #1a1a1a;
+    --muted: #555;
+    --rule: #d0d0d0;
+    --code-bg: #f4f4f4;
+  }
+  * { box-sizing: border-box; }
+  html, body {
+    margin: 0;
+    padding: 0;
+    color: var(--ink);
+    font-family: "Charter", "Iowan Old Style", "Georgia", serif;
+    font-size: 10pt;
+    line-height: 1.32;
+    -webkit-font-smoothing: antialiased;
+  }
+  body {
+    margin: 0 auto;
+    padding: 0;
+  }
+  h1 {
+    font-family: -apple-system, "Helvetica Neue", Arial, sans-serif;
+    font-size: 14pt;
+    font-weight: 600;
+    margin: 0 0 3pt 0;
+    letter-spacing: -0.01em;
+  }
+  h2 {
+    font-family: -apple-system, "Helvetica Neue", Arial, sans-serif;
+    font-size: 11.5pt;
+    font-weight: 600;
+    margin: 8pt 0 2pt 0;
+    padding-bottom: 0;
+    border-bottom: none;
+    letter-spacing: -0.005em;
+    page-break-after: avoid;
+  }
+  h3 {
+    font-family: -apple-system, "Helvetica Neue", Arial, sans-serif;
+    font-size: 10pt;
+    font-weight: 600;
+    margin: 5pt 0 2pt 0;
+    color: var(--muted);
+    letter-spacing: 0;
+    page-break-after: avoid;
+  }
+  p {
+    margin: 0 0 4pt 0;
+    text-align: left;
+    hyphens: none;
+  }
+  ul, ol {
+    margin: 0 0 3pt 0;
+    padding-left: 18pt;
+  }
+  li {
+    margin-bottom: 1pt;
+  }
+  strong {
+    font-weight: 600;
+  }
+  em {
+    font-style: italic;
+  }
+  code {
+    font-family: "SF Mono", "Menlo", "Consolas", monospace;
+    font-size: 9pt;
+    background: var(--code-bg);
+    padding: 0.5pt 3pt;
+    border-radius: 2pt;
+  }
+  .title-row {
+    display: flex;
+    align-items: baseline;
+    justify-content: space-between;
+    gap: 12pt;
+    margin-bottom: 7pt;
+  }
+  .title-row h1 { margin: 0; }
+  .byline {
+    font-family: -apple-system, "Helvetica Neue", Arial, sans-serif;
+    font-size: 9pt;
+    color: var(--muted);
+    white-space: nowrap;
+  }
+  hr {
+    border: none;
+    border-top: 0.5pt solid var(--rule);
+    margin: 14pt 0 8pt 0;
+  }
+  .footer {
+    font-family: -apple-system, "Helvetica Neue", Arial, sans-serif;
+    font-size: 8.5pt;
+    color: var(--muted);
+    text-align: right;
+    margin-top: 12pt;
+  }
+  .assumptions {
+    margin-top: 14pt;
+    padding-top: 8pt;
+    border-top: 0.5pt solid var(--rule);
+    font-size: 7.5pt;
+    color: var(--muted);
+    line-height: 1.35;
+  }
+  .assumptions ul {
+    margin: 0;
+    padding-left: 0;
+    list-style: none;
+  }
+  .assumptions li {
+    margin-bottom: 2pt;
+    padding-left: 8pt;
+    text-indent: -8pt;
+  }
+  .assumptions li::before {
+    content: "* ";
+  }
+</style>
+</head>
+<body>
+
+<div class="title-row">
+  <h1>Greenroom Case Study Memo</h1>
+  <div class="byline">Chip Herndon · May 20, 2026</div>
+</div>
+
+<p>The settlment product currently lacks direction and tells no clear settlement story. Resulting in downstream confusion and the observed lack of adoption. This memo defines and defends the slice required to create that direction.</p>
+
+<h2>The slice</h2>
+<p>Give Mariana a settlement she can trust: the deal terms she negotiates over email captured at deal creation in structured fields, and the math she walks the agent through at 2am rendered as a line-by-line statement the tour manager can trace. These two moments, deal modeling and the 2am walkthrough, are the bookends of every settlement; their mishandling is the clearest evidence of the product's missing direction. The slice aims to provide the improvements for those bookends to function as required.</p>
+
+<h2>Why this cut</h2>
+<p>Deep exploration of the product and provided materials surfaced several obvious problem areas:</p>
+
+<ul>
+  <li><strong>Deal modeling</strong> — only flat and %-of-gross settle in-app, vs and %-of-net (the majority of bookings) are unsupported.</li>
+  <li><strong>Recoup terms</strong> — no structured representation, lives entirely in prose.</li>
+  <li><strong>Expense management</strong> — distributed across accounts, manual entry, dominates Mariana's time.</li>
+  <li><strong>Deal renegotiation</strong> — terms change after initial entry; structured fields don't allow for updates.</li>
+  <li><strong>Recoup lifecycle</strong> — recoups have their own state (agreed/disputed/withdrawn) independent of the settlement's.</li>
+  <li><strong>Dispute resolution</strong> — no way to handle disputed settlements in our product.</li>
+  <li><strong>Real-time prediction</strong> — predict whether a settlement will be clean vs messy before show day.</li>
+  <li><strong>Post-show comms</strong> — no clean way to share traceable settlement math after the show.</li>
+  <li><strong>Lifecycle hygiene</strong> — UI status and underlying data disagree (the brief's spotting-it test).</li>
+  <li><strong>Cap enforcement</strong> — expense and hospitality caps are set at deal time but no part of the workflow enforces them.</li>
+</ul>
+
+<p>Each problem was ruled against the same question: <em>does fixing it significantly address why 82% of customers don't use the in-app tool?</em> Most fail. <strong>Expense management</strong> is the loudest transcript pain point, but the collection problem (distributed accounts) is upstream of Greenroom and spreadsheets have the same problem, a fix here doesn't move adoption. <strong>Renegotiation, recoup lifecycle, and cap enforcement</strong> are live issues and belong on the roadmap, but they're edit-time workflow and runtime enforcement gaps that build on top of structured deal entry (not implemented). <strong>Disputes, post-show comms, and lifecycle hygiene</strong> are downstream effects of unclear deal creation, which the dispute thread proved with unclear terms on how the recoup would be calculated. <strong>Real-time prediction</strong> is a new feature unrelated to core issues, therefore out of scope.</p>
+
+<p>Three findings from querying the database directly anchor this cut:</p>
+<ol>
+  <li><strong>Percentage drift</strong> — a deal's <code>dealNotesFreetext</code> describes an 85/15 net split after renegotiation, but <code>deals.percentage</code> still reads <code>0.75</code>. The engine reads the structured field, so the artist would be paid 10% less than negotiated.</li>
+  <li><strong>Incorrect dispute state</strong> — <code>settlements.status = "disputed"</code> while <code>settlements.signoffText</code> reads "Looks good — TM. Wire to the usual account." The internal <code>notes</code> field clarifies the TM signed off Sunday; his assistant flagged a production-overage line Monday. Three fields, three versions of truth in one record.</li>
+  <li><strong>Systemic recoup disputes</strong> — querying <code>settlements.recoupsJson</code> for <code>status = "disputed"</code> and joining to artist→agent surfaces five Daniel Hwang (WME) shows with disputed <code>marketing</code> recoups. Issue is recurring.</li>
+</ol>
+
+<p>Capturing deal terms structurally at creation and upgrading the engine to industry standards will move adoption and lower dispute rates, while resolving the downstream issues. Feature requests move onto the roadmap where they belong.</p>
+
+<h2>Design choices</h2>
+
+<ul>
+  <li><strong>Structured recoup clauses at deal time</strong> — Recoups were the dispute hotspot: the Coastal Spell thread, the five Hwang shows, and the orphaned disputed recoups on paid settlements all trace back to recoup terms living in prose. Modeling them as <code>recoupClausesJson</code> on the deal (negotiated rights) and keeping <code>recoupsJson</code> on the settlement (billed amounts) solves the source ambiguity. Technical note: stored as JSON rather than new tables, migration coordination would could have implications, and the codebase already uses JSON for bonuses.</li>
+  <li><strong>Hard-fail with a typed error contract</strong> — Unsupported and misconfigured deals return <code>kind: "deal_type_unsupported" | "deal_misconfigured"</code>, the UI renders an empty state. This avoids silent fallback to $0 or partial math that would produce disputes. Visible failure is honest and maintains trust.</li>
+  <li><strong>Engine output is the source of truth for every display surface</strong> — Every worksheet row is a <code>SettlementStep</code> the engine emitted, the UI does no derived math. The PDF export is the same step list passed through <code>jsPDF</code> (thin adapter for pdf). This is what makes Sarah's "itemization + provenance" requirement work, and it's what made the post-show comms artifact (the PDF Mariana sends the tour manager) a small addition instead of its own slice.</li>
+  <li><strong>Kept <code>dealNotesFreetext</code></strong> — Prose is what Mariana trusts today, structured fields should earn trust over time. Forcing migration could lose the user or, at minimum, provoke anxiety. The slice makes structured fields valuable enough that prose becomes redundant leading to natural user adoption of structured. Trade-off: prose and structure can still drift, surfacing both side-by-side on the show page makes drift visible.</li>
+  <li><strong>No significant UI changes</strong> — The worksheet structure, show page layout, and navigation all stayed in place. The only meaningful UI delta is what the worksheet renders and the PDF button. No stakeholder named the UI as a factor in the 18% adoption number. Re-skinning would have burned slice budget on the wrong axis and disrupted the workflow of the 18% who do use the tool.</li>
+</ul>
+
+<h2>How I'll validate</h2>
+<p>The leading metric is in-app adoption. If 18% becomes 35% in two quarters at venues with this slice rolled out, it worked. If it doesn't move, the slice didn't address the actual blocker, and we need to find out whether that's because the structured fields still don't fit real deals, because Mariana doesn't trust the math enough to abandon her spreadsheet, or because the rendering doesn't beat her sheet's clarity. Adoption is the right north star here because it's the only metric downstream of every assumption the slice makes. Secondary metrics: dispute rate on in-app settled shows, and a drop in reliance on the <code>dealNotesFreetext</code> field.</p>
+
+<h2>What needs to be shipped next</h2>
+<ol>
+  <li><strong>Renegotiation workflow</strong> — structured fields go stale when terms change post-inception. Build a "renegotiate" action that requires structured re-entry.</li>
+  <li><strong>Recoup lifecycle as a first-class state machine</strong> — gives orphaned recoups a queue users can work through separate from the parent settlement.</li>
+  <li><strong>Two-sided agent view of structured deal terms</strong> — gives the agent a full lifecycle view of upcoming settlements, fostering trust between our customer and the agent.</li>
+  <li><strong>Door deal support</strong> — for completeness of the <code>dealMath.ts</code> engine, once ticketing splits door receipts from presales.</li>
+  <li><strong>Pre-show deal health prediction</strong> — Marcus's explicit ask, now possible because of the structured data model. Nice-to-have for decision-making customers.</li>
+  <li><strong>Expense management</strong> — highest-impact item on the broader roadmap. Major refactor of collection and reporting, likely including OCR/AI workflow. Huge time unlock for customers, but a major undertaking; should not be considered until the rest of the settlement product has met the craft bar.</li>
+</ol>
+
+<h2>Why I didn't implement any AI features</h2>
+<p>Settlement math is deterministic and users want it legible and 100% trustworthy; use of AI here would be unsubstantiated, the equivalent of bolting Copilot into Notepad. That said, AI belongs downstream in expense reporting: classifying receipts across cards/paper/email, matching them to shows, flagging duplicates and cap overruns. That's high-volume, low-stakes, human-in-the-loop work where AI amplifies the flow instead of asking users to trust it on the number that matters most.</p>
+
+<div class="assumptions">
+  <ul>
+    <li><strong>Assumption 1:</strong> Deal creation exists upstream, 24 months of seeded deals imply the entry flow lives somewhere I couldn't access in the starter.</li>
+    <li><strong>Assumption 2:</strong> The patterns surfaced in the DB are representative of real venue behavior, findings were treated as evidence of real-world failure modes.</li>
+  </ul>
+</div>
+
+</body>
+</html>
