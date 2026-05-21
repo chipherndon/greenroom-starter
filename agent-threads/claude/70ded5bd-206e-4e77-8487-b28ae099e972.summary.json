@@ -1,0 +1,5 @@
+{
+  "title": "Add assumptions footnote to PRD memo HTML",
+  "summary": "User asked to add an assumptions footer to the PRD memo deliverable HTML. After iterating on size and styling, the final version is a small footnote-scale block with bullets prefixed by bold 'Assumption 1:' and 'Assumption 2:' labels instead of a header.",
+  "generatedAt": "2026-05-21T06:13:32.631Z"
+}

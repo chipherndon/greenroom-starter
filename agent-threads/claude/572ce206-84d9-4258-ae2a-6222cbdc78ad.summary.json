@@ -1,0 +1,5 @@
+{
+  "title": "Clarify create/edit status and shadcn setup",
+  "summary": "User asked whether the app supports creating shows/deals and whether it uses shadcn. Assistant confirmed the app is read-only with no insert/update logic or forms, and explained that the UI mimics shadcn style but lacks components.json and Radix deps, then offered scaffolding paths.",
+  "generatedAt": "2026-05-21T06:13:17.080Z"
+}

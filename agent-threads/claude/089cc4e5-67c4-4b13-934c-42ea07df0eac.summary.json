@@ -1,0 +1,5 @@
+{
+  "title": "Remove formula from settle worksheet header",
+  "summary": "User confirmed the Expenses card on the show page shows venue-absorbed indicators (header total badge and per-row badge), then asked to remove the 'max(guarantee, % × net)' formula string from the Settlement worksheet card header on the show settle page, which was edited out.",
+  "generatedAt": "2026-05-21T06:12:47.200Z"
+}

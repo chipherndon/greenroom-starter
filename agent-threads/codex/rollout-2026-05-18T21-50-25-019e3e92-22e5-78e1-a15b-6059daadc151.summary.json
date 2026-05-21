@@ -1,0 +1,5 @@
+{
+  "title": "Implement structured deal math and show UI updates",
+  "summary": "Implemented structured recoup clauses, vs/net deal math, tier ratchets, and recoup waterfall in dealMath.ts with tests and schema migration. Updated settlement and /shows/[id] UI to render recoup summaries, ratchet bands, comp dollar values, deal formulas, and live-math variance. Reseeded DB, addressed code review feedback (flat-deal comment, warn on unknown categories), and confirmed lifecycle states remain presentation-only.",
+  "generatedAt": "2026-05-21T06:14:24.908Z"
+}

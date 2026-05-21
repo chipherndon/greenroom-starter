@@ -1,0 +1,5 @@
+{
+  "title": "Build standalone SQLite DB explorer HTML",
+  "summary": "User asked for a comprehensive repo overview MD, then a standalone HTML page to explore the project's SQLite database independent of the Next.js app. Created REPO_OVERVIEW.md and db-explorer.html (sql.js-based, with schema browser, SQL editor, pre-written queries, and smart cell rendering). Also explained the comps.counts_toward_gross column and pointed to its definition, UI usage, and the dealMath gap.",
+  "generatedAt": "2026-05-21T06:14:07.791Z"
+}

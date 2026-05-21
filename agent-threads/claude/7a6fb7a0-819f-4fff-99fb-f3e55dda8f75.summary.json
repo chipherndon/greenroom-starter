@@ -1,0 +1,5 @@
+{
+  "title": "Commit non-code changes to repo",
+  "summary": "User asked to commit only non-code changes. Categorized files, staged docs/notes/SQL migration/HTML tool/SQLite db, and committed as 3c93e1c. Then clarified that data/greenroom.db was already tracked since initial commit, and flagged that committing a SQLite binary bloats history.",
+  "generatedAt": "2026-05-21T06:13:38.624Z"
+}

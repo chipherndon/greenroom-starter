@@ -1,0 +1,5 @@
+{
+  "title": "Add settlement worksheet PDF export",
+  "summary": "User asked for a PDF export button on the settlement worksheet card. Added a client component using jsPDF + autoTable, wired it into the worksheet CardHeader, then fixed header alignment and Unicode glyph corruption (minus/times/arrow chars) before committing only the relevant files.",
+  "generatedAt": "2026-05-21T06:14:12.573Z"
+}

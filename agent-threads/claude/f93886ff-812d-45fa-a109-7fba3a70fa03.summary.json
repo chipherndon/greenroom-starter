@@ -1,0 +1,5 @@
+{
+  "title": "Audit settlement-related code comments",
+  "summary": "User asked for a comment audit focused on deal settlement, then drilled into tier_ratchet, bonusesJson handling, expense vs hospitality cap differentiation, and absorbedByVenue semantics. Mapped out engine seams, planted breadcrumb disputes (BC1–BC12), and flagged silently-ignored fields like stacks and approved.",
+  "generatedAt": "2026-05-21T06:14:18.807Z"
+}

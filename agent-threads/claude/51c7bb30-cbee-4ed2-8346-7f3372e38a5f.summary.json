@@ -1,0 +1,5 @@
+{
+  "title": "Explain vs deal math expression",
+  "summary": "User asked how a 'vs deal' clause ($5000 guarantee vs 80% of net after expenses, whichever is greater) translates to a math expression. Assistant gave the max() formula, defined net, and computed the $6,250 breakeven point where the two options pay equally.",
+  "generatedAt": "2026-05-21T06:13:12.201Z"
+}

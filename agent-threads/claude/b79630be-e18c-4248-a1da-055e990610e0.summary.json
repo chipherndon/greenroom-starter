@@ -1,0 +1,5 @@
+{
+  "title": "Build deal-engine support HTML deck",
+  "summary": "User asked for a presentation HTML page documenting the recoup data model, supported deal types, engine waterfall, and tier-ratchet caveats, styled like a hand-drawn reference image. Iterated to tone down styling, fix flow-chart ordering, add a problem-statement intro, move fixture demo links above the explanation, and add section spacing.",
+  "generatedAt": "2026-05-21T06:14:00.524Z"
+}

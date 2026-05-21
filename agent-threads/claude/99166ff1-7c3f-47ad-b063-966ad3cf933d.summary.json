@@ -1,0 +1,5 @@
+{
+  "title": "Resolve python http.server port conflict",
+  "summary": "User hit 'Address already in use' running python3 -m http.server. Assistant suggested killing the process on port 8000 or using a different port, then checked for the listening process before the user interrupted.",
+  "generatedAt": "2026-05-21T06:13:52.474Z"
+}
